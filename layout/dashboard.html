@@ -4,25 +4,28 @@
         <meta charset="UTS-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <link rel="stylesheet" href="adminstyle.css">
+        <link rel="stylesheet" href="../css/styles.css">
+        <link rel="stylesheet" href="../css/dashboardstyle.css">
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-        <title>Admin - The Nineth Official Store</title>
-        <link rel="icon" href="../icon/tnicon4.png" type="image/x-icon">
-        <script src="../script.js" defer></script>
+        <title>Hackybara Accounting</title>
+        <link rel="icon" href="../icon/icon.png" type="image/x-icon">
+        <script src="../js/script.js" defer></script>
     </head>
     <body>
         <!--NAVIGATION BAR-->
         <section id="header" class="header">
-            <a href="#"><img src="../img/tnlogo.png" class="logo"></a>
+            <a href="dashboard.html" class="logotext"><img src="../img/logo.png" class="logo">Hackybara</a>
             <div id="myNavbar" class="myNavbar">
                 <div class="profile">
-                    <div class="info">
-                        <h4><b>Hilmi</b></h4>
-                        <p>Admin</p>
-                    </div>
-                    <div class="profile-photo">
-                        <img src="../img/tnlogo.png" alt="">
-                    </div>
+                    <a href="profile.html">
+                        <div class="info">
+                            <h4><b>Hilmi</b></h4>
+                            <p>Admin</p>
+                        </div>
+                        <div class="profile-photo">
+                            <img src="../img/tnlogo.png" alt="">
+                        </div>
+                    </a>
                 </div>
                 <div class="button">
                     <button class="hamburger" onclick="openNav()"><img src="../icon/menuicon.png"></button>
@@ -32,51 +35,48 @@
             <div id="mySidenav" class="sidenav">
                 <a href="javascript:void(0)" onclick="closeNav()">X</a>
                 <a class="active" href="dashboard.html">Dashboard</a>
-                <a href="#">Products</a>
-                <a href="#">Customer</a>
-                <a href="#">Order</a>
-                <a href="#">Report</a>
-                <a href="#">Setting</a>
-                <a href="#">Logout</a>
+                <a href="transactions.html">Transactions</a>
+                <a href="report.html">Report</a>
+                <a href="cf_forecast.html">Cash Flow Forecast</a>
+                <a href="aichat.html">AI Chat</a>
+                <a href="settings.html">Settings</a>
+                <a href="javascript:void(0)" onclick="logout()">Logout</a>
             </div>
         </section>
         
         <div class="container">
             <!--ASIDE SECTION START-->
             <aside>
-                <!--
                 <div class="top">
-                    <div class="close">
-                        <span class="material-symbols-outlined">close</span>
-                    </div>
-                </div> -->
-
+                    <h4>Business Name</h4>
+                </div>
+                <!--SIDE NAVIGATION BAR (DESKTOP)-->
                 <div class="sidebar">
-                    <a href="#" class="active">
+                    <a href="dashboard.html" class="active">
                         <span class="material-symbols-outlined">dashboard</span>
                         <h3>Dashboard</h3>
                     </a>
-                    <a href="#">
-                        <span class="material-symbols-outlined">apparel</span>
-                        <h3>Products</h3>
+                    <a href="transactions.html">
+                        <span class="material-symbols-outlined">contract</span>
+                        <h3>Transaction</h3>
                     </a>
-                    <a href="#">
-                        <span class="material-symbols-outlined">person</span>
-                        <h3>Customer</h3>
-                    </a>
-                    <a href="#">
-                        <span class="material-symbols-outlined">shopping_cart</span>
-                        <h3>Order</h3>
-                    </a>
-                    <a href="#">
+                    <a href="report.html">
                         <span class="material-symbols-outlined">description</span>
                         <h3>Report</h3>
                     </a>
-                    <a href="#">
+                    <a href="cf_forecast.html">
+                        <span class="material-symbols-outlined">payments</span>
+                        <h3>Cash Flow Forecast</h3>
+                    </a>
+                    <a href="aichat.html">
+                        <span class="material-symbols-outlined">robot_2</span>
+                        <h3>AI Chat</h3>
+                    </a>
+                    <a href="settings.html">
                         <span class="material-symbols-outlined">settings</span>
                         <h3>Settings</h3>
                     </a>
-                    <a href="#">
+                    <a href="javascript:void(0)" onclick="logout()">
                         <span class="material-symbols-outlined">logout</span>
                         <h3>Logout</h3>
                     </a>
@@ -242,36 +242,5 @@
             <!--RIGHT SECTION END-->
 
         </div>
-
-
-
-
-
-
-
-
-        
-        <!--NAVIGATION BAR
-        <section id="header">
-            <a href="#"><img src="img/tnlogo.png" class="logo"></a>
-            <div id="myNavbar" class="myNavbar">
-                <ul id="navbar" class="navbar">
-                    <li><a class="active" href="dashboard.html">Dashboard</a></li>
-                    <li><a href="products.html">Products</a></li>
-                    <li><a href="settings.html">Settings</a></li>
-                    <li><a href="adminprofile.html">Profile</a></li>
-                </ul>
-            </div>
-            <h4 id="mobiletitle">Dashboard</h4>
-            <button class="hamburger" onclick="openNav()"><img src="icon/menuicon.png"></button> -->
-            <!--SIDE NAVIGATION BAR (MOBILE)
-            <div id="mySidenav" class="sidenav">
-                <a href="javascript:void(0)" onclick="closeNav()">X</a>
-                <a class="active" href="dashboard.html">Dashboard</a>
-                <a href="products.html">Products</a>
-                <a href="settings.html">Settings</a>
-                <a href="adminprofile.html">Profile</a>
-            </div>
-        </section> -->
     </body>
 </html>
