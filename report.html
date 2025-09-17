@@ -4,16 +4,16 @@
         <meta charset="UTS-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width,initial-scale=1">
-        <link rel="stylesheet" href="../css/styles.css">
+        <link rel="stylesheet" href="css/styles.css">
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
         <title>Hackybara Accounting</title>
-        <link rel="icon" href="../icon/icon.png" type="image/x-icon">
-        <script src="../js/script.js" defer></script>
+        <link rel="icon" href="icon/icon.png" type="image/x-icon">
+        <script src="js/script.js" defer></script>
     </head>
     <body>
         <!--NAVIGATION BAR-->
         <section id="header" class="header">
-            <a href="dashboard.html" class="logotext"><img src="../img/logo.png" class="logo">Hackybara</a>
+            <a href="dashboard.html" class="logotext"><img src="img/logo.png" class="logo">Hackybara</a>
             <div id="myNavbar" class="myNavbar">
                 <div class="profile">
                     <a href="profile.html">
@@ -22,12 +22,12 @@
                             <p>Admin</p>
                         </div>
                         <div class="profile-photo">
-                            <img src="../img/tnlogo.png" alt="">
+                            <img src="img/tnlogo.png" alt="">
                         </div>
                     </a>
                 </div>
                 <div class="button">
-                    <button class="hamburger" onclick="openNav()"><img src="../icon/menuicon.png"></button>
+                    <button class="hamburger" onclick="openNav()"><img src="icon/menuicon.png"></button>
                 </div>
             </div>
             <!--SIDE NAVIGATION BAR (MOBILE)-->
@@ -35,10 +35,10 @@
                 <a href="javascript:void(0)" onclick="closeNav()">X</a>
                 <a href="dashboard.html">Dashboard</a>
                 <a href="transactions.html">Transactions</a>
-                <a href="report.html">Report</a>
+                <a class="active" href="report.html">Report</a>
                 <a href="cf_forecast.html">Cash Flow Forecast</a>
                 <a href="aichat.html">AI Chat</a>
-                <a class="active" href="settings.html">Settings</a>
+                <a href="settings.html">Settings</a>
                 <a href="javascript:void(0)" onclick="logout()">Logout</a>
             </div>
         </section>
@@ -59,7 +59,7 @@
                         <span class="material-symbols-outlined">contract</span>
                         <h3>Transaction</h3>
                     </a>
-                    <a href="report.html">
+                    <a href="report.html" class="active">
                         <span class="material-symbols-outlined">description</span>
                         <h3>Report</h3>
                     </a>
@@ -71,7 +71,7 @@
                         <span class="material-symbols-outlined">robot_2</span>
                         <h3>AI Chat</h3>
                     </a>
-                    <a href="settings.html" class="active">
+                    <a href="settings.html">
                         <span class="material-symbols-outlined">settings</span>
                         <h3>Settings</h3>
                     </a>
