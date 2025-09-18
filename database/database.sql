@@ -163,6 +163,7 @@ CREATE TABLE public.transactions (
     amount numeric(10,2),
     currency character varying(10),
     invoice_date timestamp without time zone,
+    type char(20),
     organization_id uuid NOT NULL,
     ocr_result_id uuid,
     vendor_id uuid,
