@@ -1,0 +1,26 @@
+{
+  "name": "genai-accounting-hackybara",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hackybara-hackathon/genai-accounting-hackybara.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/hackybara-hackathon/genai-accounting-hackybara/issues"
+  },
+  "homepage": "https://github.com/hackybara-hackathon/genai-accounting-hackybara#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
+    "express": "^5.1.0",
+    "pg": "^8.16.3"
+  }
+}
