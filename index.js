@@ -8,7 +8,7 @@ const port = 3000;
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('frontend/layout')); // serve HTML, CSS, JS
+app.use(express.static('frontend')); // serve HTML, CSS, JS
 
 // PostgreSQL pool
 const pool = new Pool({
