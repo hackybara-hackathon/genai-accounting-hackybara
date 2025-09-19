@@ -6,15 +6,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
 async function loadCurrentUser() {
   try {
-    const response = await fetch('/api/auth/current');
+    const response = await fetch('/api/auth/current', { credentials: 'include' });
     if (!response.ok) {
       window.location.href = 'login.html';
       return null;
     }
     const data = await response.json();
     document.getElementById('userName').textContent = data.user.name;
+    //document.getElementById('userNameInput').value = data.user.name;
     document.getElementById('organizationName').textContent = data.user.organization_name;
-    loadOrders(data.user.organization_id);
+    document.getElementById('userRole').textContent = data.user.role;
   } catch (err) {
     console.error(err);
     window.location.href = 'login.html';
@@ -23,7 +24,7 @@ async function loadCurrentUser() {
 
 async function logout() {
   try {
-    await fetch('/api/logout', { method: 'POST' });
+    await fetch('/api/logout', { method: 'POST', credentials: 'include' });
     window.location.href = 'login.html';
   } catch (err) {
     console.error(err);
@@ -44,7 +45,7 @@ function closeNav() {
 // Fetch and display all users in a table
 async function loadUsers() {
   try {
-    const response = await fetch('/api/users');
+    const response = await fetch('/api/settings/user', { credentials: 'include' });
     const users = await response.json();
 
     const userTableBody = document.getElementById("userTableBody");

@@ -18,8 +18,9 @@ app.use(session({
   secret: '&483fkdnik43i#9458fkdjgdfg5435',
   resave: false,
   saveUninitialized: false,
-  cookie: { maxAge: 1000*60*60*24 } // 1 day
+  cookie: { maxAge: 1000*60*60*24 }, // 1 day
 }));
+
 
 // API routes
 const userRoutes = require('./backend/routes/userRoutes');
@@ -28,6 +29,7 @@ const loginRoutes = require('./backend/routes/loginRoutes');
 const authRoutes = require('./backend/routes/authRoutes');
 const logoutRoutes = require('./backend/routes/logoutRoutes');
 const dashboardRoutes = require('./backend/routes/dashboardRoutes');
+const settingRoutes = require('./backend/routes/settingRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/register', registerRoutes);
@@ -35,6 +37,7 @@ app.use('/api/login', loginRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/logout', logoutRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/settings', settingRoutes);
 
 // Serve frontend
 app.use(express.static(path.join(__dirname, 'frontend')));

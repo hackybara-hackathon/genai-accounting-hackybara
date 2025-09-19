@@ -18,6 +18,7 @@ router.get('/current', async (req, res) => {
         name: req.session.user.name,
         email: req.session.user.email,
         organization_id: req.session.user.organization_id,
+        role: req.session.user.role,
         organization_name: organization.name
       }
     });

@@ -8,10 +8,10 @@ function ensureAuthenticated(req, res, next) {
 }
 
 // Get organization-specific data
-router.get('/data', ensureAuthenticated, async (req, res) => {
+router.get('/user', ensureAuthenticated, async (req, res) => {
   const orgId = req.session.user.organization_id;
   try {
-    const result = await pool.query("SELECT * FROM transactions WHERE organization_id=$1", [orgId]);
+    const result = await pool.query("SELECT * FROM users WHERE organization_id=$1", [orgId]);
     res.json(result.rows);
   } catch (err) {
     console.error(err);

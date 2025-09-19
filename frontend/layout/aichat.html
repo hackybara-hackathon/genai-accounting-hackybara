@@ -8,6 +8,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
         <title>Hackybara Accounting - AI Chat</title>
         <link rel="icon" href="../icon/icon.png" type="image/x-icon">
+        <script src="../js/script.js" defer></script>
         <script>
             // JavaScript functions
             function openNav() {
@@ -163,8 +164,8 @@
                     <div class="profile mr-4">
                         <a href="profile.html" class="flex items-center">
                             <div class="info text-right mr-3">
-                                <h4 class="font-bold">Hilmi</h4>
-                                <p class="text-sm text-gray-500">Admin</p>
+                                <h4 class="font-bold"><span id="userName"></span></h4>
+                                <p class="text-sm text-gray-500"><span id="userRole"></span></p>
                             </div>
                             <div class="profile-photo w-10 h-10 rounded-full overflow-hidden border-2 border-blue-500">
                                 <img src="../img/tnlogo.png" alt="Profile" class="w-full h-full object-cover">
@@ -196,7 +197,7 @@
             <!--ASIDE SECTION START-->
             <aside class="w-64 fixed left-0 top-20 h-screen bg-white shadow-md hidden md:block">
                 <div class="top p-6 border-b border-gray-200">
-                    <h4 class="font-bold text-gray-700">Business Name</h4>
+                    <h4 class="font-bold text-gray-700"><span id="organizationName"></span></h4>
                 </div>
                 <!--SIDE NAVIGATION BAR (DESKTOP)-->
                 <div class="sidebar p-4">
