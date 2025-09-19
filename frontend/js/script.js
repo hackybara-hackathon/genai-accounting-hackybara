@@ -1,3 +1,37 @@
+//AUTHENTICATION - LOAD CURRENT USER AND ORGANIZATION NAME
+document.addEventListener('DOMContentLoaded', () => {
+  loadCurrentUser();
+  document.getElementById('logoutBtn').addEventListener('click', logout);
+});
+
+async function loadCurrentUser() {
+  try {
+    const response = await fetch('/api/auth/current');
+    if (!response.ok) {
+      window.location.href = 'login.html';
+      return null;
+    }
+    const data = await response.json();
+    document.getElementById('userName').textContent = data.user.name;
+    document.getElementById('organizationName').textContent = data.user.organization_name;
+    loadOrders(data.user.organization_id);
+  } catch (err) {
+    console.error(err);
+    window.location.href = 'login.html';
+  }
+}
+
+async function logout() {
+  try {
+    await fetch('/api/logout', { method: 'POST' });
+    window.location.href = 'login.html';
+  } catch (err) {
+    console.error(err);
+    window.location.href = 'login.html';
+  }
+}
+
+
 //SIDE NAVIGATION BAR
 function openNav() {
       document.getElementById("mySidenav").style.width = "220px";
@@ -5,12 +39,6 @@ function openNav() {
 
 function closeNav() {
     document.getElementById("mySidenav").style.width = "0";
-}
-
-//LOGOUT
-function logout() {
-    // Clear user session or authentication tokens here
-    window.location.href = "login.html"; // Redirect to login page
 }
 
 // Fetch and display all users in a table
@@ -80,6 +108,10 @@ document.getElementById("userForm").addEventListener("submit", async (e) => {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, email })
   });
+
+  document.getElementById("userForm").reset();
+  loadUsers();
+}); 
 
 // Load users on page load
 window.onload = loadUsers;

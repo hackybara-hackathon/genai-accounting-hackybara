@@ -8,6 +8,7 @@
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
         <title>Hackybara Accounting - Sign Up</title>
         <link rel="icon" href="../icon/icon.png" type="image/x-icon">
+        <script src="../js/signup.js" defer></script>
         <style>
             .material-symbols-outlined {
                 font-variation-settings:
@@ -32,7 +33,7 @@
             </div>
             
             <!-- Signup Form -->
-            <form id="signupForm" class="p-6" action="dashboard.html" method="POST">
+            <form id="signupForm" class="p-6" method="POST">
                 <h2 class="text-xl font-semibold text-gray-800 mb-6 text-center">Create Your Account</h2>
                 
                 <div class="mb-4">
@@ -141,32 +142,5 @@
                 </div>
             </form>
         </div>
-
-        <script>
-            // Basic form validation
-            document.addEventListener('DOMContentLoaded', function() {
-                const signupForm = document.getElementById('signupForm');
-                
-                signupForm.addEventListener('submit', function(e) {
-                    const password = document.getElementById('signupPassword').value;
-                    const confirmPassword = document.getElementById('confirmPassword').value;
-                    
-                    if (password !== confirmPassword) {
-                        e.preventDefault();
-                        alert('Passwords do not match!');
-                        return;
-                    }
-                    
-                    if (password.length < 8) {
-                        e.preventDefault();
-                        alert('Password must be at least 8 characters long!');
-                        return;
-                    }
-                    
-                    // In a real application, you would handle the signup process
-                    alert('Account created successfully! Redirecting to dashboard...');
-                });
-            });
-        </script>
     </body>
 </html>
