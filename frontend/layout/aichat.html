@@ -1,82 +1,231 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-        <meta charset="UTS-8">
+        <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width,initial-scale=1">
-        <link rel="stylesheet" href="../css/styles.css">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-        <title>Hackybara Accounting</title>
+        <title>Hackybara Accounting - AI Chat</title>
         <link rel="icon" href="../icon/icon.png" type="image/x-icon">
-        <script src="../js/script.js" defer></script>
+        <script>
+            // JavaScript functions
+            function openNav() {
+                document.getElementById("mySidenav").classList.remove("hidden");
+                document.getElementById("mySidenav").classList.add("block");
+            }
+            
+            function closeNav() {
+                document.getElementById("mySidenav").classList.remove("block");
+                document.getElementById("mySidenav").classList.add("hidden");
+            }
+            
+            function logout() {
+                alert("Logout functionality would go here");
+            }
+            
+            // AI Chat functionality
+            document.addEventListener('DOMContentLoaded', function() {
+                const chatForm = document.getElementById('chatForm');
+                const userInput = document.getElementById('userInput');
+                const chatMessages = document.getElementById('chatMessages');
+                
+                // Sample responses for demo purposes
+                const sampleResponses = [
+                    "I can help you analyze your financial data. What specific reports are you interested in?",
+                    "Based on your transaction history, I notice that your expenses have increased by 15% compared to last month. Would you like me to generate a detailed expense report?",
+                    "I'd be happy to help you forecast your cash flow. Please provide me with your expected income and expenses for the next quarter.",
+                    "Your profit margin has improved by 8% compared to the previous quarter. Great job!",
+                    "I can assist with tax preparation. Please make sure you have all your receipts and financial documents organized."
+                ];
+                
+                // Add welcome message
+                addMessage("Hi! I'm Hackybara AI Assistant. How can I help with your accounting today?", "ai");
+                
+                chatForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    
+                    const message = userInput.value.trim();
+                    if (message === '') return;
+                    
+                    // Add user message to chat
+                    addMessage(message, 'user');
+                    
+                    // Clear input
+                    userInput.value = '';
+                    
+                    // Show typing indicator
+                    const typingIndicator = document.createElement('div');
+                    typingIndicator.id = 'typingIndicator';
+                    typingIndicator.className = 'flex items-start space-x-2 mb-4';
+                    typingIndicator.innerHTML = `
+                        <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                            <span class="material-symbols-outlined text-blue-600">robot_2</span>
+                        </div>
+                        <div class="typing-dots flex space-x-1 bg-gray-100 rounded-lg p-3">
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+                            <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+                        </div>
+                    `;
+                    chatMessages.appendChild(typingIndicator);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                    
+                    // Simulate AI response after a delay
+                    setTimeout(function() {
+                        // Remove typing indicator
+                        document.getElementById('typingIndicator').remove();
+                        
+                        // Get random response
+                        const response = sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
+                        
+                        // Add AI response to chat
+                        addMessage(response, 'ai');
+                    }, 1500);
+                });
+                
+                // Suggested questions
+                const suggestedQuestions = document.querySelectorAll('.suggested-question');
+                suggestedQuestions.forEach(question => {
+                    question.addEventListener('click', function() {
+                        userInput.value = this.textContent;
+                        userInput.focus();
+                    });
+                });
+                
+                function addMessage(text, sender) {
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = `flex items-start space-x-2 mb-4 ${sender === 'user' ? 'justify-end' : ''}`;
+                    
+                    if (sender === 'ai') {
+                        messageDiv.innerHTML = `
+                            <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-blue-600">robot_2</span>
+                            </div>
+                            <div class="bg-gray-100 rounded-lg p-3 max-w-[70%]">
+                                <p class="text-gray-800">${text}</p>
+                            </div>
+                        `;
+                    } else {
+                        messageDiv.innerHTML = `
+                            <div class="bg-blue-600 text-white rounded-lg p-3 max-w-[70%]">
+                                <p>${text}</p>
+                            </div>
+                            <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                                <span class="material-symbols-outlined text-white">person</span>
+                            </div>
+                        `;
+                    }
+                    
+                    chatMessages.appendChild(messageDiv);
+                    chatMessages.scrollTop = chatMessages.scrollHeight;
+                }
+            });
+        </script>
+        <style>
+            .material-symbols-outlined {
+                font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+            }
+            
+            /* Custom scrollbar for chat */
+            .chat-messages {
+                scrollbar-width: thin;
+                scrollbar-color: #cbd5e1 #f1f5f9;
+            }
+            
+            .chat-messages::-webkit-scrollbar {
+                width: 6px;
+            }
+            
+            .chat-messages::-webkit-scrollbar-track {
+                background: #f1f5f9;
+                border-radius: 3px;
+            }
+            
+            .chat-messages::-webkit-scrollbar-thumb {
+                background-color: #cbd5e1;
+                border-radius: 3px;
+            }
+        </style>
     </head>
-    <body>
+    <body class="bg-gray-100">
         <!--NAVIGATION BAR-->
-        <section id="header" class="header">
-            <a href="dashboard.html" class="logotext"><img src="../img/logo.png" class="logo">Hackybara</a>
-            <div id="myNavbar" class="myNavbar">
-                <div class="profile">
-                    <a href="profile.html">
-                        <div class="info">
-                            <h4><b>Hilmi</b></h4>
-                            <p>Admin</p>
-                        </div>
-                        <div class="profile-photo">
-                            <img src="../img/tnlogo.png" alt="">
-                        </div>
-                    </a>
-                </div>
-                <div class="button">
-                    <button class="hamburger" onclick="openNav()"><img src="../icon/menuicon.png"></button>
+        <section class="header bg-white p-4 shadow-md fixed top-0 left-0 right-0 z-10">
+            <div class="flex justify-between items-center">
+                <a href="dashboard.html" class="flex items-center text-xl font-bold text-blue-800">
+                    <img src="../img/logo.png" class="h-8 mr-2">Hackybara
+                </a>
+                <div class="myNavbar flex items-center">
+                    <div class="profile mr-4">
+                        <a href="profile.html" class="flex items-center">
+                            <div class="info text-right mr-3">
+                                <h4 class="font-bold">Hilmi</h4>
+                                <p class="text-sm text-gray-500">Admin</p>
+                            </div>
+                            <div class="profile-photo w-10 h-10 rounded-full overflow-hidden border-2 border-blue-500">
+                                <img src="../img/tnlogo.png" alt="Profile" class="w-full h-full object-cover">
+                            </div>
+                        </a>
+                    </div>
+                    <div class="button">
+                        <button class="hamburger md:hidden" onclick="openNav()">
+                            <img src="../icon/menuicon.png" class="h-6">
+                        </button>
+                    </div>
                 </div>
             </div>
+            
             <!--SIDE NAVIGATION BAR (MOBILE)-->
-            <div id="mySidenav" class="sidenav">
-                <a href="javascript:void(0)" onclick="closeNav()">X</a>
-                <a href="dashboard.html">Dashboard</a>
-                <a href="transactions.html">Transactions</a>
-                <a href="report.html">Report</a>
-                <a href="cf_forecast.html">Cash Flow Forecast</a>
-                <a class="active" href="aichat.html">AI Chat</a>
-                <a href="settings.html">Settings</a>
-                <a href="javascript:void(0)" onclick="logout()">Logout</a>
+            <div id="mySidenav" class="sidenav hidden fixed top-0 right-0 h-full w-64 bg-white shadow-lg z-20 transition-all">
+                <a href="javascript:void(0)" class="block p-4 text-right text-xl font-bold" onclick="closeNav()">X</a>
+                <a href="dashboard.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">Dashboard</a>
+                <a href="transactions.html" class="block p-4 border-b border-gray-200">Transactions</a>
+                <a href="report.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">Report</a>
+                <a href="cf_forecast.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">Cash Flow Forecast</a>
+                <a href="aichat.html" class="block p-4 border-b border-gray-200 bg-blue-100 text-blue-600 font-medium">AI Chat</a>
+                <a href="settings.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">Settings</a>
+                <a href="javascript:void(0)" class="block p-4 border-b border-gray-200 hover:bg-gray-100" onclick="logout()">Logout</a>
             </div>
         </section>
         
-        <div class="container">
+        <div class="container flex mt-20">
             <!--ASIDE SECTION START-->
-            <aside>
-                <div class="top">
-                    <h4>Business Name</h4>
+            <aside class="w-64 fixed left-0 top-20 h-screen bg-white shadow-md hidden md:block">
+                <div class="top p-6 border-b border-gray-200">
+                    <h4 class="font-bold text-gray-700">Business Name</h4>
                 </div>
                 <!--SIDE NAVIGATION BAR (DESKTOP)-->
-                <div class="sidebar">
-                    <a href="dashboard.html">
-                        <span class="material-symbols-outlined">dashboard</span>
+                <div class="sidebar p-4">
+                    <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+                        <span class="material-symbols-outlined mr-3">dashboard</span>
                         <h3>Dashboard</h3>
                     </a>
-                    <a href="transactions.html">
-                        <span class="material-symbols-outlined">contract</span>
+                    <a href="transactions.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+                        <span class="material-symbols-outlined mr-3">contract</span>
                         <h3>Transaction</h3>
                     </a>
-                    <a href="report.html">
-                        <span class="material-symbols-outlined">description</span>
+                    <a href="report.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+                        <span class="material-symbols-outlined mr-3">description</span>
                         <h3>Report</h3>
                     </a>
-                    <a href="cf_forecast.html">
-                        <span class="material-symbols-outlined">payments</span>
+                    <a href="cf_forecast.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+                        <span class="material-symbols-outlined mr-3">payments</span>
                         <h3>Cash Flow Forecast</h3>
                     </a>
-                    <a href="aichat.html" class="active">
-                        <span class="material-symbols-outlined">robot_2</span>
+                    <a href="aichat.html" class="flex items-center p-3 rounded-lg bg-blue-100 text-blue-600 font-medium mb-2">
+                        <span class="material-symbols-outlined mr-3">robot_2</span>
                         <h3>AI Chat</h3>
                     </a>
-                    <a href="settings.html">
-                        <span class="material-symbols-outlined">settings</span>
+                    <a href="settings.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+                        <span class="material-symbols-outlined mr-3">settings</span>
                         <h3>Settings</h3>
                     </a>
-                    <a href="javascript:void(0)" onclick="logout()">
-                        <span class="material-symbols-outlined">logout</span>
+                    <a href="javascript:void(0)" onclick="logout()" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+                        <span class="material-symbols-outlined mr-3">logout</span>
                         <h3>Logout</h3>
                     </a>
                 </div>
@@ -84,8 +233,71 @@
             <!--ASIDE SECTION END-->
 
             <!--MAIN SECTION START-->
-            <main>
-                
+            <main class="flex-1 md:ml-64 p-6">
+                <div class="titledate flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">AI Assistant</h1>
+                    <div class="flex items-center space-x-2 text-sm text-gray-600">
+                        <span class="material-symbols-outlined text-green-500">circle</span>
+                        <span>AI is online</span>
+                    </div>
+                </div>
+
+                <!-- AI Chat Interface -->
+                <div class="bg-white rounded-lg shadow-sm h-[calc(100vh-180px)] flex flex-col">
+                    <!-- Chat Header -->
+                    <div class="border-b border-gray-200 p-4 flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                            <span class="material-symbols-outlined text-blue-600">robot_2</span>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold">Hackybara AI Assistant</h3>
+                            <p class="text-sm text-gray-500">Powered by advanced accounting intelligence</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Messages -->
+                    <div id="chatMessages" class="chat-messages flex-1 p-4 overflow-y-auto">
+                        <!-- Messages will be added here dynamically -->
+                    </div>
+                    
+                    <!-- Suggested Questions -->
+                    <div class="border-t border-gray-200 p-4 bg-gray-50">
+                        <p class="text-sm text-gray-600 mb-2">Try asking:</p>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="suggested-question text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full">
+                                How can I improve my cash flow?
+                            </button>
+                            <button class="suggested-question text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full">
+                                Generate a profit and loss report
+                            </button>
+                            <button class="suggested-question text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full">
+                                Analyze my expenses
+                            </button>
+                            <button class="suggested-question text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full">
+                                Help with tax preparation
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Input Area -->
+                    <div class="border-t border-gray-200 p-4">
+                        <form id="chatForm" class="flex items-center space-x-2">
+                            <input 
+                                type="text" 
+                                id="userInput" 
+                                placeholder="Ask something about your accounting..." 
+                                class="flex-1 border border-gray-300 rounded-full py-2 px-4 focus:ring-blue-500 focus:border-blue-500"
+                                autocomplete="off"
+                            >
+                            <button 
+                                type="submit" 
+                                class="bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700 transition-colors"
+                            >
+                                <span class="material-symbols-outlined">send</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </main>
             <!--MAIN SECTION END--> 
         </div>

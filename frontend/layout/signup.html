@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+        <title>Hackybara Accounting - Sign Up</title>
+        <link rel="icon" href="../icon/icon.png" type="image/x-icon">
+        <style>
+            .material-symbols-outlined {
+                font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+            }
+            
+            :root {
+                --color-primary: #7380ec;
+            }
+        </style>
+    </head>
+    <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+        <div class="w-full max-w-md bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- Logo Header -->
+            <div class="bg-blue-600 py-6 px-4 flex justify-center">
+                <div class="flex items-center text-white text-2xl font-bold">
+                    <img src="../img/logo.png" class="h-10 mr-2">Hackybara
+                </div>
+            </div>
+            
+            <!-- Signup Form -->
+            <form id="signupForm" class="p-6" action="dashboard.html" method="POST">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6 text-center">Create Your Account</h2>
+                
+                <div class="mb-4">
+                    <label for="businessName" class="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-3 text-gray-400">business_center</span>
+                        <input 
+                            type="text" 
+                            id="businessName" 
+                            name="businessName"
+                            class="w-full pl-10 p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" 
+                            placeholder="Your Business Name"
+                            required
+                        >
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="signupEmail" class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-3 text-gray-400">mail</span>
+                        <input 
+                            type="email" 
+                            id="signupEmail" 
+                            name="email"
+                            class="w-full pl-10 p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" 
+                            placeholder="your@email.com"
+                            required
+                        >
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label for="signupPassword" class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-3 text-gray-400">lock</span>
+                        <input 
+                            type="password" 
+                            id="signupPassword" 
+                            name="password"
+                            class="w-full pl-10 p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" 
+                            placeholder="••••••••"
+                            required
+                        >
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Must be at least 8 characters</p>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="confirmPassword" class="block text-sm font-medium text-gray-700 mb-1">Confirm Password</label>
+                    <div class="relative">
+                        <span class="material-symbols-outlined absolute left-3 top-3 text-gray-400">lock</span>
+                        <input 
+                            type="password" 
+                            id="confirmPassword" 
+                            name="confirmPassword"
+                            class="w-full pl-10 p-2 border border-gray-300 rounded focus:ring-blue-500 focus:border-blue-500" 
+                            placeholder="••••••••"
+                            required
+                        >
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <div class="flex items-center">
+                        <input 
+                            type="checkbox" 
+                            id="termsAgree" 
+                            name="terms"
+                            class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                            required
+                        >
+                        <label for="termsAgree" class="ml-2 block text-sm text-gray-700">
+                            I agree to the <a href="#" class="text-blue-600 hover:text-blue-800">Terms and Conditions</a>
+                        </label>
+                    </div>
+                </div>
+                
+                <button 
+                    type="submit" 
+                    class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                    Create Account
+                </button>
+                
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-gray-600">
+                        Already have an account? 
+                        <a href="login.html" class="text-blue-600 hover:text-blue-800 font-medium">Login</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <script>
+            // Basic form validation
+            document.addEventListener('DOMContentLoaded', function() {
+                const signupForm = document.getElementById('signupForm');
+                
+                signupForm.addEventListener('submit', function(e) {
+                    const password = document.getElementById('signupPassword').value;
+                    const confirmPassword = document.getElementById('confirmPassword').value;
+                    
+                    if (password !== confirmPassword) {
+                        e.preventDefault();
+                        alert('Passwords do not match!');
+                        return;
+                    }
+                    
+                    if (password.length < 8) {
+                        e.preventDefault();
+                        alert('Password must be at least 8 characters long!');
+                        return;
+                    }
+                    
+                    // In a real application, you would handle the signup process
+                    alert('Account created successfully! Redirecting to dashboard...');
+                });
+            });
+        </script>
+    </body>
+</html>
