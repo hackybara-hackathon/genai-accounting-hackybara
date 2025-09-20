@@ -8,5 +8,15 @@ node_modules/
 logs/
 *.log
 
+.venv/
+__pycache__/
+*.pyc
+node_modules/
+.env
+data/*.pdf
+data/*.png
+data/*.jpg
+
+
 # OS-specific files
 .DS_Store
