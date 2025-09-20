@@ -6,9 +6,11 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <script src="https://cdn.tailwindcss.com"></script>
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
-        <title>Hackybara Accounting</title>
+        <title>Transactions - Hackybara Accounting</title>
         <link rel="icon" href="../icon/icon.png" type="image/x-icon">
+        <script src="../js/config.js"></script>
         <script src="../js/script.js" defer></script>
+        <script src="../js/transactions.js" defer></script>
         <script>
             // JavaScript functions
             function openNav() {
@@ -104,6 +106,7 @@
                 <a href="javascript:void(0)" class="block p-4 text-right text-xl font-bold" onclick="closeNav()">X</a>
                 <a href="dashboard.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">Dashboard</a>
                 <a href="transactions.html" class="block p-4 border-b border-gray-200 bg-blue-100 text-blue-600 font-medium">Transactions</a>
+                <a href="upload.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">Upload Receipt</a>
                 <a href="report.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">Report</a>
                 <a href="cf_forecast.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">Cash Flow Forecast</a>
                 <a href="aichat.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">AI Chat</a>
@@ -127,6 +130,10 @@
                     <a href="transactions.html" class="flex items-center p-3 rounded-lg bg-blue-100 text-blue-600 font-medium mb-2">
                         <span class="material-symbols-outlined mr-3">contract</span>
                         <h3>Transaction</h3>
+                    </a>
+                    <a href="upload.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+                        <span class="material-symbols-outlined mr-3">upload</span>
+                        <h3>Upload Receipt</h3>
                     </a>
                     <a href="report.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
                         <span class="material-symbols-outlined mr-3">description</span>
@@ -155,41 +162,123 @@
             <!--MAIN SECTION START-->
             <main class="flex-1 md:ml-64 p-6">
                 <div class="titledate flex justify-between items-center mb-6">
-                    <h1 class="text-2xl font-bold">Transaction</h1>
+                    <h1 class="text-2xl font-bold">Transactions</h1>
                     <div class="add-button">
-                    <a href="add_transaction.html">
-                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                        Add
-                        </button>
-                    </a>
+                        <a href="upload.html" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded inline-block">
+                            <span class="material-symbols-outlined mr-2 inline text-sm">upload</span>
+                            Upload Receipt
+                        </a>
                     </div>
                 </div>
 
-                
+                <!-- Error Container -->
+                <div id="errorContainer"></div>
 
-                <!--START RECENT ORDER-->
-                <div class="recent_order bg-white p-6 rounded-lg shadow-sm">
-                    <h1 class="text-xl font-bold mb-4">Recent Orders</h1>
-                    <table class="w-full">
-                        <thead>
-                            <tr class="border-b border-gray-200">
-                                <th class="text-left pb-2">Order ID</th>
-                                <th class="text-left pb-2">Product Name</th>
-                                <th class="text-left pb-2">Payment</th>
-                                <th class="text-left pb-2">Status</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr class="border-b border-gray-200">
-                                <td class="py-3">OD-12345</td>
-                                <td class="py-3">Doodle Edition</td>
-                                <td class="py-3 text-yellow-600">Pending</td>
-                                <td class="py-3 text-blue-600">Pending</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                <!-- Filter Controls -->
+                <div class="bg-white p-4 rounded-lg shadow-sm mb-6">
+                    <h2 class="text-lg font-semibold mb-4">Filter Transactions</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label for="fromDate" class="block text-sm font-medium text-gray-700 mb-1">From Date</label>
+                            <input type="date" id="fromDate" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="toDate" class="block text-sm font-medium text-gray-700 mb-1">To Date</label>
+                            <input type="date" id="toDate" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label for="categoryFilter" class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <select id="categoryFilter" class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Categories</option>
+                                <option value="Food & Beverage">Food & Beverage</option>
+                                <option value="Transportation">Transportation</option>
+                                <option value="Utilities">Utilities</option>
+                                <option value="Office Supplies">Office Supplies</option>
+                                <option value="Others">Others</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="vendorFilter" class="block text-sm font-medium text-gray-700 mb-1">Vendor</label>
+                            <input type="text" id="vendorFilter" placeholder="Search vendor..." class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                    </div>
+                    <div class="flex space-x-4 mt-4">
+                        <button id="searchButton" class="bg-blue-500 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                            <span class="material-symbols-outlined mr-2 inline text-sm">search</span>
+                            Search
+                        </button>
+                        <button id="clearButton" class="bg-gray-500 hover:bg-gray-700 text-white px-4 py-2 rounded">
+                            <span class="material-symbols-outlined mr-2 inline text-sm">clear</span>
+                            Clear
+                        </button>
+                    </div>
                 </div>
-                <!--END RECENT ORDER-->
+
+                <!--START TRANSACTIONS TABLE-->
+                <div class="transactions_table bg-white p-6 rounded-lg shadow-sm">
+                    <!-- Loading State -->
+                    <div id="loadingState" class="text-center py-8">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                        <p class="mt-2 text-gray-600">Loading transactions...</p>
+                    </div>
+
+                    <!-- Transactions Content -->
+                    <div id="transactionsContent" style="display: none;">
+                        <div class="flex justify-between items-center mb-4">
+                            <h1 class="text-xl font-bold">Transaction History</h1>
+                            <div class="text-sm text-gray-600">
+                                Total: <span id="totalTransactions">0</span> transactions
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full" id="transactionsTable">
+                                <thead>
+                                    <tr class="border-b border-gray-200">
+                                        <th class="text-left pb-2 px-2">Date</th>
+                                        <th class="text-left pb-2 px-2">Vendor</th>
+                                        <th class="text-left pb-2 px-2">Category</th>
+                                        <th class="text-left pb-2 px-2">Amount</th>
+                                        <th class="text-left pb-2 px-2">Description</th>
+                                        <th class="text-left pb-2 px-2">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactionsTableBody">
+                                    <!-- Transactions will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div class="flex justify-between items-center mt-6">
+                            <div class="text-sm text-gray-600">
+                                Showing <span id="showingStart">1</span> to <span id="showingEnd">10</span> of <span id="showingTotal">0</span> transactions
+                            </div>
+                            <div class="flex space-x-2">
+                                <button id="prevButton" class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-100" disabled>
+                                    Previous
+                                </button>
+                                <span id="pageNumbers" class="flex space-x-1">
+                                    <!-- Page numbers will be populated here -->
+                                </span>
+                                <button id="nextButton" class="px-3 py-1 border border-gray-300 rounded text-sm hover:bg-gray-100" disabled>
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="emptyState" style="display: none;" class="text-center py-12">
+                        <span class="material-symbols-outlined text-gray-400 text-6xl mb-4 block">receipt_long</span>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">No transactions found</h3>
+                        <p class="text-gray-600 mb-4">Start by uploading your first receipt to see transactions here.</p>
+                        <a href="upload.html" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                            Upload Receipt
+                        </a>
+                    </div>
+                </div>
+                <!--END TRANSACTIONS TABLE-->
             </main>
             <!--MAIN SECTION END--> 
         </div>

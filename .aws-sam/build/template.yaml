@@ -1,0 +1,373 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: GenAI-Enhanced Accounting Management System - Serverless MVP
+Parameters:
+  WebsiteBucketName:
+    Type: String
+    Default: genai-accounting-website
+    Description: Name for the S3 bucket hosting the static website
+  ReceiptsBucketName:
+    Type: String
+    Default: genai-accounting-receipts
+    Description: Name for the S3 bucket storing receipt files
+  RegionForBedrock:
+    Type: String
+    Default: ap-southeast-1
+    AllowedValues:
+    - ap-southeast-1
+    - us-east-1
+    Description: AWS region for Bedrock (model availability limited)
+  ModelId:
+    Type: String
+    Default: meta.llama3-2-3b-instruct-v1:0
+    AllowedValues:
+    - meta.llama3-2-1b-instruct-v1:0
+    - meta.llama3-2-3b-instruct-v1:0
+    - meta.llama3-2-11b-instruct-v1:0
+    - meta.llama3-2-90b-instruct-v1:0
+    - meta.llama3-1-8b-instruct-v1:0
+    - meta.llama3-1-70b-instruct-v1:0
+    - mistral.mistral-7b-instruct-v0:2
+    - mistral.mixtral-8x7b-instruct-v0:1
+    - mistral.mistral-large-2402-v1:0
+    - mistral.mistral-large-2407-v1:0
+    - amazon.nova-micro-v1:0
+    - amazon.nova-lite-v1:0
+    - amazon.nova-pro-v1:0
+    - anthropic.claude-3-5-sonnet-20240620-v1:0
+    - anthropic.claude-3-haiku-20240307-v1:0
+    - deepseek-chat
+    - deepseek-coder
+    Description: AI model ID for receipt classification and insights generation
+  OrganizationId:
+    Type: String
+    Description: Organization UUID for multi-tenant separation
+  DatabaseHost:
+    Type: String
+    Description: PostgreSQL RDS endpoint hostname
+  DatabasePort:
+    Type: String
+    Default: '5432'
+    Description: PostgreSQL port
+  DatabaseName:
+    Type: String
+    Default: accounting
+    Description: PostgreSQL database name
+  DatabaseUser:
+    Type: String
+    Description: PostgreSQL username
+  DatabasePassword:
+    Type: String
+    NoEcho: true
+    Description: PostgreSQL password
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.12
+    Environment:
+      Variables:
+        ORG_ID:
+          Ref: OrganizationId
+        DB_HOST:
+          Ref: DatabaseHost
+        DB_PORT:
+          Ref: DatabasePort
+        DB_NAME:
+          Ref: DatabaseName
+        DB_USER:
+          Ref: DatabaseUser
+        DB_PASSWORD:
+          Ref: DatabasePassword
+        BUCKET_NAME:
+          Ref: ReceiptsBucket
+        MODEL_ID:
+          Ref: ModelId
+        BEDROCK_REGION:
+          Ref: RegionForBedrock
+Resources:
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Fn::Sub: ${WebsiteBucketName}-${AWS::AccountId}
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+          - '*'
+          AllowedMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - HEAD
+          AllowedOrigins:
+          - '*'
+          MaxAge: 3000
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: WebsiteBucket
+      PolicyDocument:
+        Statement:
+        - Sid: PublicReadGetObject
+          Effect: Allow
+          Principal: '*'
+          Action: s3:GetObject
+          Resource:
+            Fn::Sub: ${WebsiteBucket}/*
+  ReceiptsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName:
+        Fn::Sub: ${ReceiptsBucketName}-${AWS::AccountId}
+      CorsConfiguration:
+        CorsRules:
+        - AllowedHeaders:
+          - '*'
+          AllowedMethods:
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - HEAD
+          AllowedOrigins:
+          - '*'
+          MaxAge: 3000
+  ClassifyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ClassifyFunction
+      Handler: handlers.classify_handler
+      Layers:
+      - Ref: PsycopgLayer
+      Policies:
+      - S3ReadPolicy:
+          BucketName:
+            Ref: ReceiptsBucket
+      - S3WritePolicy:
+          BucketName:
+            Ref: ReceiptsBucket
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - bedrock:InvokeModel
+          Resource:
+            Fn::Sub: arn:aws:bedrock:${RegionForBedrock}::foundation-model/${ModelId}
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+      Events:
+        ClassifyApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGateway
+            Path: /classify
+            Method: post
+    Metadata:
+      SamResourceId: ClassifyFunction
+  TransactionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: TransactionsFunction
+      Handler: handlers.transactions_handler
+      Layers:
+      - Ref: PsycopgLayer
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+      Events:
+        TransactionsApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGateway
+            Path: /transactions
+            Method: get
+    Metadata:
+      SamResourceId: TransactionsFunction
+  SummaryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: SummaryFunction
+      Handler: handlers.summary_handler
+      Layers:
+      - Ref: PsycopgLayer
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+      Events:
+        SummaryApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGateway
+            Path: /summary
+            Method: get
+    Metadata:
+      SamResourceId: SummaryFunction
+  ReportMonthlyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ReportMonthlyFunction
+      Handler: handlers.report_monthly_handler
+      Layers:
+      - Ref: PsycopgLayer
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+      Events:
+        ReportMonthlyApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGateway
+            Path: /report/monthly
+            Method: get
+    Metadata:
+      SamResourceId: ReportMonthlyFunction
+  ForecastFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ForecastFunction
+      Handler: handlers.forecast_handler
+      Layers:
+      - Ref: PsycopgLayer
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+      Events:
+        ForecastApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGateway
+            Path: /forecast
+            Method: get
+    Metadata:
+      SamResourceId: ForecastFunction
+  InsightsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: InsightsFunction
+      Handler: handlers.insights_handler
+      Layers:
+      - Ref: PsycopgLayer
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - bedrock:InvokeModel
+          Resource:
+            Fn::Sub: arn:aws:bedrock:${RegionForBedrock}::foundation-model/${ModelId}
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+      Events:
+        InsightsApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGateway
+            Path: /insights
+            Method: post
+    Metadata:
+      SamResourceId: InsightsFunction
+  PsycopgLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: psycopg2-layer
+      Description: PostgreSQL adapter for Python
+      ContentUri: PsycopgLayer
+      CompatibleRuntimes:
+      - python3.12
+    Metadata:
+      BuildMethod: python3.12
+      SamResourceId: PsycopgLayer
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Cors:
+        AllowMethods: '''GET,POST,OPTIONS'''
+        AllowHeaders: '''Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'''
+        AllowOrigin: '''*'''
+        MaxAge: '''600'''
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value:
+      Fn::Sub: https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-ApiUrl
+  WebsiteBucketName:
+    Description: Name of the S3 bucket for website hosting
+    Value:
+      Ref: WebsiteBucket
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-WebsiteBucketName
+  WebsiteUrl:
+    Description: URL for the static website
+    Value:
+      Fn::Sub: http://${WebsiteBucket}.s3-website-${AWS::Region}.amazonaws.com
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-WebsiteUrl
+  ReceiptsBucketName:
+    Description: Name of the S3 bucket for receipts storage
+    Value:
+      Ref: ReceiptsBucket
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-ReceiptsBucketName
+  DatabaseConfiguration:
+    Description: PostgreSQL database configuration (host and database name)
+    Value:
+      Fn::Sub: ${DatabaseHost}:${DatabasePort}/${DatabaseName}
+    Export:
+      Name:
+        Fn::Sub: ${AWS::StackName}-DatabaseConfig

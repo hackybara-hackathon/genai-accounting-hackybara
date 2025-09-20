@@ -8,7 +8,7 @@ A production-ready serverless API for automated receipt processing and categoriz
 - **Backend**: AWS Lambda functions with API Gateway
 - **Database**: PostgreSQL RDS with comprehensive accounting schema
 - **Storage**: S3 for receipt files
-- **AI**: Amazon Bedrock for intelligent categorization and business insights
+- **AI**: Multiple AI models via Amazon Bedrock (Llama, Mistral, Nova, DeepSeek, Claude)
 - **Monitoring**: CloudWatch logs
 
 ## Quick Deployment
@@ -30,7 +30,7 @@ During the guided deployment, you'll be prompted for:
 - Stack name (e.g., `genai-accounting`)
 - AWS region (recommend `ap-southeast-1` or `us-east-1` for Bedrock)
 - S3 bucket names (will be auto-suffixed with account ID)
-- Bedrock model ID (default: `anthropic.claude-3-5-sonnet-20240620-v1:0`)
+- AI model ID (default: `meta.llama3-2-3b-instruct-v1:0`) - see AI_MODELS.md for options
 - **PostgreSQL connection details**:
   - Database host (RDS endpoint)
   - Database port (default: 5432)
@@ -56,17 +56,31 @@ During the guided deployment, you'll be prompted for:
    - API Gateway CORS is set to allow all origins (`*`)
    - S3 buckets have CORS configured for cross-origin requests
 
-## Bedrock Model Configuration
+## AI Model Configuration
 
-### Supported Models & Regions
-- **ap-southeast-1 (Singapore)**: `anthropic.claude-3-5-sonnet-20240620-v1:0`
-- **us-east-1 (N. Virginia)**: `anthropic.claude-3-5-sonnet-20240620-v1:0`
+### Supported AI Models
+This system now supports multiple AI models for receipt classification and business insights:
 
-### Model Access
-Ensure you have enabled model access in the Bedrock console for your chosen region:
-1. Go to AWS Bedrock console
-2. Navigate to "Model access" 
-3. Enable access for Claude 3.5 Sonnet
+- **🦙 Meta Llama** (3.2-1B, 3.2-3B, 3.2-11B, 3.2-90B) - **Recommended**
+- **🎯 Mistral** (7B, 8x7B Mixtral, Large) - High accuracy
+- **⭐ Amazon Nova** (Micro, Lite, Pro) - Cost-effective
+- **🔍 DeepSeek** (Chat, Coder) - Specialized analysis
+- **🧠 Claude** (Sonnet, Haiku) - Legacy support
+
+**Default Model**: `meta.llama3-2-3b-instruct-v1:0` (best balance of cost, speed, and accuracy)
+
+### Model Selection Guide
+See [AI_MODELS.md](AI_MODELS.md) for detailed comparison and selection guidelines.
+
+### Supported Regions
+- **ap-southeast-1 (Singapore)**: Llama, Mistral, Claude
+- **us-east-1 (N. Virginia)**: All models including Nova
+- **eu-west-1 (Ireland)**: Most models
+
+### Model Access Setup
+1. Go to AWS Bedrock console in your chosen region
+2. Navigate to "Model access"
+3. Enable access for your chosen model family (Meta, Mistral, etc.)
 
 ## Database Schema
 
