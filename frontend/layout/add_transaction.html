@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Transaction - Hackybara Accounting</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+    <style>
+        .material-symbols-outlined {
+            font-variation-settings:
+            'FILL' 0,
+            'wght' 400,
+            'GRAD' 0,
+            'opsz' 24
+        }
+        
+        .progress svg {
+            width: 80px;
+            height: 80px;
+            transform: rotate(-90deg);
+        }
+        
+        .progress circle {
+            fill: none;
+            stroke-width: 8;
+            stroke-linecap: round;
+        }
+        
+        .sales circle {
+            stroke: var(--color-primary);
+            stroke-dashoffset: 75;
+            stroke-dasharray: 226;
+        }
+        
+        .expenses circle {
+            stroke: var(--color-danger);
+            stroke-dashoffset: 75;
+            stroke-dasharray: 226;
+        }
+        
+        .income circle {
+            stroke: var(--color-success);
+            stroke-dashoffset: 75;
+            stroke-dasharray: 226;
+        }
+        
+        :root {
+            --color-primary: #7380ec;
+            --color-danger: #ff7782;
+            --color-success: #41f1b6;
+        }
+        
+        /* Custom styling for file upload */
+        .file-upload {
+            border: 2px dashed #cbd5e0;
+            transition: all 0.3s ease;
+        }
+        
+        .file-upload:hover {
+            border-color: #3b82f6;
+            background-color: #f8fafc;
+        }
+        
+        /* AI Processing Animation */
+        .ai-processing {
+            display: none;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        
+        .receipt-preview {
+            max-height: 300px;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!--NAVIGATION BAR-->
+    <section class="header bg-white p-4 shadow-md fixed top-0 left-0 right-0 z-10">
+        <div class="flex justify-between items-center">
+            <a href="dashboard.html" class="flex items-center text-xl font-bold text-blue-800">
+                <img src="../img/logo.png" class="h-8 mr-2">Hackybara
+            </a>
+            <div class="myNavbar flex items-center">
+                <div class="profile mr-4">
+                    <a href="profile.html" class="flex items-center">
+                        <div class="info text-right mr-3">
+                            <h4 class="font-bold">John Doe</h4>
+                            <p class="text-sm text-gray-500">Accountant</p>
+                        </div>
+                        <div class="profile-photo w-10 h-10 rounded-full overflow-hidden border-2 border-blue-500">
+                            <img src="../img/tnlogo.png" alt="Profile" class="w-full h-full object-cover">
+                        </div>
+                    </a>
+                </div>
+                <div class="button">
+                    <button class="hamburger md:hidden" onclick="openNav()">
+                        <span class="material-symbols-outlined">menu</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!--SIDE NAVIGATION BAR (MOBILE)-->
+        <div id="mySidenav" class="sidenav hidden fixed top-0 right-0 h-full w-64 bg-white shadow-lg z-20 transition-all">
+            <a href="javascript:void(0)" class="block p-4 text-right text-xl font-bold" onclick="closeNav()">X</a>
+            <a href="dashboard.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">Dashboard</a>
+            <a href="transactions.html" class="block p-4 border-b border-gray-200 bg-blue-100 text-blue-600 font-medium">Transactions</a>
+            <a href="report.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">Report</a>
+            <a href="cf_forecast.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">Cash Flow Forecast</a>
+            <a href="aichat.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">AI Chat</a>
+            <a href="settings.html" class="block p-4 border-b border-gray-200 hover:bg-gray-100">Settings</a>
+            <a href="javascript:void(0)" class="block p-4 border-b border-gray-200 hover:bg-gray-100" onclick="logout()">Logout</a>
+        </div>
+    </section>
+    
+    <div class="container flex mt-20">
+        <!--ASIDE SECTION START-->
+        <aside class="w-64 fixed left-0 top-20 h-screen bg-white shadow-md hidden md:block">
+            <div class="top p-6 border-b border-gray-200">
+                <h4 class="font-bold text-gray-700">Acme Corporation</h4>
+            </div>
+            <!--SIDE NAVIGATION BAR (DESKTOP)-->
+            <div class="sidebar p-4">
+                <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+                    <span class="material-symbols-outlined mr-3">dashboard</span>
+                    <h3>Dashboard</h3>
+                </a>
+                <a href="transactions.html" class="flex items-center p-3 rounded-lg bg-blue-100 text-blue-600 font-medium mb-2">
+                    <span class="material-symbols-outlined mr-3">contract</span>
+                    <h3>Transaction</h3>
+                </a>
+                <a href="report.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+                    <span class="material-symbols-outlined mr-3">description</span>
+                    <h3>Report</h3>
+                </a>
+                <a href="cf_forecast.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+                    <span class="material-symbols-outlined mr-3">payments</span>
+                    <h3>Cash Flow Forecast</h3>
+                </a>
+                <a href="aichat.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+                    <span class="material-symbols-outlined mr-3">robot_2</span>
+                    <h3>AI Chat</h3>
+                </a>
+                <a href="settings.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+                    <span class="material-symbols-outlined mr-3">settings</span>
+                    <h3>Settings</h3>
+                </a>
+                <a href="javascript:void(0)" onclick="logout()" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+                    <span class="material-symbols-outlined mr-3">logout</span>
+                    <h3>Logout</h3>
+                </a>
+            </div>
+        </aside>
+        <!--ASIDE SECTION END-->
+
+        <!--MAIN SECTION START-->
+        <main class="flex-1 md:ml-64 p-6">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Add New Transaction</h2>
+                
+                <!-- Upload Receipt Section -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-semibold text-gray-700 mb-4">Upload Receipt/Invoice</h3>
+                    <div class="file-upload p-8 rounded-lg text-center mb-4">
+                        <input type="file" id="receiptUpload" accept="image/*,.pdf" class="hidden">
+                        <label for="receiptUpload" class="cursor-pointer">
+                            <span class="material-symbols-outlined text-4xl text-blue-500 mb-2">cloud_upload</span>
+                            <p class="text-gray-600">Drag & drop your receipt or invoice here, or click to browse</p>
+                            <p class="text-sm text-gray-500 mt-2">Supports JPG, PNG, and PDF files (max 5MB)</p>
+                        </label>
+                    </div>
+                    <div id="fileInfo" class="hidden text-sm text-gray-600 mb-4"></div>
+                    <div id="receiptPreview" class="hidden mb-4 text-center">
+                        <img id="previewImage" class="receipt-preview mx-auto rounded border">
+                    </div>
+                    <button id="processReceiptBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded hidden">
+                        Process with AI
+                    </button>
+                    <div id="aiProcessing" class="ai-processing flex items-center justify-center mt-4 p-4 bg-blue-50 rounded-lg">
+                        <span class="material-symbols-outlined text-blue-500 mr-2">auto_awesome</span>
+                        <span class="text-blue-700">AI is analyzing your document...</span>
+                    </div>
+                </div>
+                
+                <!-- Transaction Form -->
+                <form id="transactionForm" class="space-y-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="organization_id" class="block text-sm font-medium text-gray-700 mb-1">Organization ID</label>
+                            <input type="text" id="organization_id" name="organization_id" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="document_id" class="block text-sm font-medium text-gray-700 mb-1">Document ID</label>
+                            <input type="text" id="document_id" name="document_id" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="vendor_id" class="block text-sm font-medium text-gray-700 mb-1">Vendor ID</label>
+                            <input type="text" id="vendor_id" name="vendor_id" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="account_id" class="block text-sm font-medium text-gray-700 mb-1">Account ID</label>
+                            <input type="text" id="account_id" name="account_id" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="category_id" class="block text-sm font-medium text-gray-700 mb-1">Category ID</label>
+                            <select id="category_id" name="category_id" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select a category</option>
+                                <option value="office_supplies">Office Supplies</option>
+                                <option value="travel">Travel Expenses</option>
+                                <option value="utilities">Utilities</option>
+                                <option value="marketing">Marketing</option>
+                                <option value="software">Software</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="type" class="block text-sm font-medium text-gray-700 mb-1">Transaction Type</label>
+                            <select id="type" name="type" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="">Select type</option>
+                                <option value="debit">Debit</option>
+                                <option value="credit">Credit</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="description" class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                        <textarea id="description" name="description" rows="3" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500"></textarea>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="amount" class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                            <input type="number" id="amount" name="amount" step="0.01" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                        <div>
+                            <label for="currency" class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                            <select id="currency" name="currency" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                <option value="USD">USD ($)</option>
+                                <option value="EUR">EUR (€)</option>
+                                <option value="GBP">GBP (£)</option>
+                                <option value="JPY">JPY (¥)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="invoice_date" class="block text-sm font-medium text-gray-700 mb-1">Invoice Date</label>
+                            <input type="date" id="invoice_date" name="invoice_date" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-end space-x-4 pt-6">
+                        <button type="button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-6 rounded-lg">
+                            Cancel
+                        </button>
+                        <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-6 rounded-lg flex items-center">
+                            <span class="material-symbols-outlined mr-2">add</span>
+                            Add Transaction
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+        <!--MAIN SECTION END--> 
+    </div>
+
+    <script>
+        // DOM Elements
+        const receiptUpload = document.getElementById('receiptUpload');
+        const fileInfo = document.getElementById('fileInfo');
+        const receiptPreview = document.getElementById('receiptPreview');
+        const previewImage = document.getElementById('previewImage');
+        const processReceiptBtn = document.getElementById('processReceiptBtn');
+        const aiProcessing = document.getElementById('aiProcessing');
+        const transactionForm = document.getElementById('transactionForm');
+        
+        // Event Listeners
+        receiptUpload.addEventListener('change', handleFileUpload);
+        processReceiptBtn.addEventListener('click', processWithAI);
+        transactionForm.addEventListener('submit', handleFormSubmit);
+        
+        // File Upload Handler
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Check file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                alert('File size exceeds 5MB limit. Please choose a smaller file.');
+                return;
+            }
+            
+            // Display file info
+            fileInfo.textContent = `Selected file: ${file.name} (${formatFileSize(file.size)})`;
+            fileInfo.classList.remove('hidden');
+            
+            // Show preview for images
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImage.src = e.target.result;
+                    receiptPreview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                receiptPreview.classList.add('hidden');
+            }
+            
+            // Show process button
+            processReceiptBtn.classList.remove('hidden');
+        }
+        
+        // Format file size
+        function formatFileSize(bytes) {
+            if (bytes < 1024) return bytes + ' bytes';
+            else if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+            else return (bytes / 1048576).toFixed(1) + ' MB';
+        }
+        
+        // Process with AI
+        function processWithAI() {
+            aiProcessing.style.display = 'flex';
+            processReceiptBtn.classList.add('hidden');
+            
+            // Simulate AI processing with a timeout
+            setTimeout(() => {
+                // Simulate AI extraction results
+                autoFillForm({
+                    vendor_id: 'VEND-2023-00125',
+                    account_id: 'ACC-1002',
+                    category_id: 'office_supplies',
+                    description: 'Office supplies purchase from Staples - paper, pens, notebooks',
+                    amount: '124.99',
+                    currency: 'USD',
+                    invoice_date: '2023-10-15',
+                    type: 'debit'
+                });
+                
+                aiProcessing.style.display = 'none';
+                alert('Document processed successfully! Form fields have been auto-filled.');
+            }, 3000);
+        }
+        
+        // Auto-fill form with extracted data
+        function autoFillForm(data) {
+            document.getElementById('vendor_id').value = data.vendor_id || '';
+            document.getElementById('account_id').value = data.account_id || '';
+            document.getElementById('category_id').value = data.category_id || '';
+            document.getElementById('description').value = data.description || '';
+            document.getElementById('amount').value = data.amount || '';
+            document.getElementById('currency').value = data.currency || '';
+            document.getElementById('invoice_date').value = data.invoice_date || '';
+            document.getElementById('type').value = data.type || '';
+            
+            // Generate IDs if not provided
+            if (!document.getElementById('organization_id').value) {
+                document.getElementById('organization_id').value = 'ORG-' + Math.floor(1000 + Math.random() * 9000);
+            }
+            
+            if (!document.getElementById('document_id').value) {
+                document.getElementById('document_id').value = 'DOC-' + Date.now();
+            }
+        }
+        
+        // Form Submission Handler
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            // Basic validation
+            const requiredFields = ['vendor_id', 'account_id', 'amount', 'invoice_date', 'type'];
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                const input = document.getElementById(field);
+                if (!input.value.trim()) {
+                    isValid = false;
+                    input.classList.add('border-red-500');
+                } else {
+                    input.classList.remove('border-red-500');
+                }
+            });
+            
+            if (!isValid) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+            
+            // Simulate form submission
+            alert('Transaction added successfully!');
+            transactionForm.reset();
+            fileInfo.classList.add('hidden');
+            receiptPreview.classList.add('hidden');
+            processReceiptBtn.classList.add('hidden');
+        }
+        
+        // Navigation functions
+        function openNav() {
+            document.getElementById("mySidenav").classList.remove("hidden");
+            document.getElementById("mySidenav").classList.add("block");
+        }
+        
+        function closeNav() {
+            document.getElementById("mySidenav").classList.remove("block");
+            document.getElementById("mySidenav").classList.add("hidden");
+        }
+        
+        function logout() {
+            alert("Logout functionality would go here");
+        }
+    </script>
+</body>
+</html>
