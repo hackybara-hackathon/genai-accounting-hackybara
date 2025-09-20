@@ -1,0 +1,321 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: GenAI-Enhanced Accounting Management System - Serverless MVP
+
+Parameters:
+  WebsiteBucketName:
+    Type: String
+    Default: genai-accounting-website
+    Description: Name for the S3 bucket hosting the static website
+  ReceiptsBucketName:
+    Type: String
+    Default: genai-accounting-receipts
+    Description: Name for the S3 bucket storing receipt files
+  RegionForBedrock:
+    Type: String
+    Default: ap-southeast-1
+    AllowedValues:
+      - ap-southeast-1
+      - us-east-1
+    Description: AWS region for Bedrock (model availability limited)
+  ModelId:
+    Type: String
+    Default: anthropic.claude-3-5-sonnet-20240620-v1:0
+    Description: Bedrock model ID for categorization
+  # PostgreSQL Database Parameters
+  OrganizationId:
+    Type: String
+    Description: Organization UUID for multi-tenant separation
+  DatabaseHost:
+    Type: String
+    Description: PostgreSQL RDS endpoint hostname
+  DatabasePort:
+    Type: String
+    Default: "5432"
+    Description: PostgreSQL port
+  DatabaseName:
+    Type: String
+    Default: accounting
+    Description: PostgreSQL database name
+  DatabaseUser:
+    Type: String
+    Description: PostgreSQL username
+  DatabasePassword:
+    Type: String
+    NoEcho: true
+    Description: PostgreSQL password
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.11
+    Environment:
+      Variables:
+        # PostgreSQL Database Configuration
+        ORG_ID: !Ref OrganizationId
+        DB_HOST: !Ref DatabaseHost
+        DB_PORT: !Ref DatabasePort
+        DB_NAME: !Ref DatabaseName
+        DB_USER: !Ref DatabaseUser
+        DB_PASSWORD: !Ref DatabasePassword
+        # AWS Services
+        BUCKET_NAME: !Ref ReceiptsBucket
+        MODEL_ID: !Ref ModelId
+        AWS_REGION: !Ref RegionForBedrock
+
+Resources:
+  # S3 Bucket for static website
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${WebsiteBucketName}-${AWS::AccountId}"
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ["*"]
+            AllowedMethods: [GET, POST, PUT, DELETE, HEAD]
+            AllowedOrigins: ["*"]
+            MaxAge: 3000
+
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebsiteBucket
+      PolicyDocument:
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: "*"
+            Action: s3:GetObject
+            Resource: !Sub "${WebsiteBucket}/*"
+
+  # S3 Bucket for receipts storage
+  ReceiptsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "${ReceiptsBucketName}-${AWS::AccountId}"
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: ["*"]
+            AllowedMethods: [GET, POST, PUT, DELETE, HEAD]
+            AllowedOrigins: ["*"]
+            MaxAge: 3000
+
+  # Lambda Functions for PostgreSQL-based API
+  ClassifyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.classify_handler
+      Layers:
+        - !Ref PsycopgLayer
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref ReceiptsBucket
+        - S3WritePolicy:
+            BucketName: !Ref ReceiptsBucket
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: !Sub "arn:aws:bedrock:${RegionForBedrock}::foundation-model/${ModelId}"
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+      Events:
+        ClassifyApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /classify
+            Method: post
+
+  TransactionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.transactions_handler
+      Layers:
+        - !Ref PsycopgLayer
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+      Events:
+        TransactionsApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /transactions
+            Method: get
+
+  SummaryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.summary_handler
+      Layers:
+        - !Ref PsycopgLayer
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+      Events:
+        SummaryApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /summary
+            Method: get
+
+  ReportMonthlyFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.report_monthly_handler
+      Layers:
+        - !Ref PsycopgLayer
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+      Events:
+        ReportMonthlyApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /report/monthly
+            Method: get
+
+  ForecastFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.forecast_handler
+      Layers:
+        - !Ref PsycopgLayer
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+      Events:
+        ForecastApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /forecast
+            Method: get
+
+  InsightsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.insights_handler
+      Layers:
+        - !Ref PsycopgLayer
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: !Sub "arn:aws:bedrock:${RegionForBedrock}::foundation-model/${ModelId}"
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+      Events:
+        InsightsApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /insights
+            Method: post
+
+  # Lambda Layer for psycopg2
+  PsycopgLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: psycopg2-layer
+      Description: PostgreSQL adapter for Python
+      ContentUri: layers/psycopg2/
+      CompatibleRuntimes:
+        - python3.11
+    Metadata:
+      BuildMethod: python3.11
+
+  # API Gateway
+  ApiGateway:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+      Cors:
+        AllowMethods: "'GET,POST,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+        MaxAge: "'600'"
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ApiGateway}.execute-api.${AWS::Region}.amazonaws.com/prod"
+    Export:
+      Name: !Sub "${AWS::StackName}-ApiUrl"
+
+  WebsiteBucketName:
+    Description: Name of the S3 bucket for website hosting
+    Value: !Ref WebsiteBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-WebsiteBucketName"
+
+  WebsiteUrl:
+    Description: URL for the static website
+    Value: !Sub "http://${WebsiteBucket}.s3-website-${AWS::Region}.amazonaws.com"
+    Export:
+      Name: !Sub "${AWS::StackName}-WebsiteUrl"
+
+  ReceiptsBucketName:
+    Description: Name of the S3 bucket for receipts storage
+    Value: !Ref ReceiptsBucket
+    Export:
+      Name: !Sub "${AWS::StackName}-ReceiptsBucketName"
+
+  DatabaseConfiguration:
+    Description: PostgreSQL database configuration (host and database name)
+    Value: !Sub "${DatabaseHost}:${DatabasePort}/${DatabaseName}"
+    Export:
+      Name: !Sub "${AWS::StackName}-DatabaseConfig"

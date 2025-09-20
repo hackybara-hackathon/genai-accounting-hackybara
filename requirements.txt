@@ -1,0 +1,7 @@
+# PostgreSQL Database
+psycopg2-binary==2.9.9
+
+# AWS SDK (available in Lambda runtime, but needed for local development)
+# boto3==1.34.0
+
+# All other dependencies are Python standard library
