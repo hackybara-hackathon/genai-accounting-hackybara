@@ -17,8 +17,8 @@ class APIConfig {
         // Check if we're in production (deployed to S3/CloudFront)
         if (window.location.hostname.includes('amazonaws.com') || 
             window.location.hostname.includes('cloudfront.net')) {
-            // This should be updated with your actual API Gateway URL after deployment
-            return 'https://YOUR_API_ID.execute-api.YOUR_REGION.amazonaws.com/prod';
+            // Updated with your actual API Gateway URL
+            return 'https://xfnv4mgb64.execute-api.ap-southeast-1.amazonaws.com/prod';
         }
         
         // For local development with the FastAPI backend
@@ -27,8 +27,8 @@ class APIConfig {
             return 'http://localhost:8000';
         }
         
-        // Default fallback - replace with your actual API Gateway URL
-        return 'https://YOUR_API_ID.execute-api.YOUR_REGION.amazonaws.com/prod';
+        // Updated with your actual API Gateway URL
+        return 'https://xfnv4mgb64.execute-api.ap-southeast-1.amazonaws.com/prod';
     }
 
     getEndpoint(name) {

@@ -1,11 +1,11 @@
 version = 0.1
 
 [default.deploy.parameters]
-stack_name = "genai-accounting-fixed"
+stack_name = "genai-accounting-simple"
 resolve_s3 = true
-s3_prefix = "genai-accounting-fixed"
+s3_prefix = "genai-accounting-simple"
 region = "ap-southeast-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "WebsiteBucketName=\"genai-website-427566522814\" ReceiptsBucketName=\"genai-receipts-427566522814\" RegionForBedrock=\"ap-southeast-1\" ModelId=\"amazon.nova-lite-v1:0\" OrganizationId=\"94fbdf4e-0e94-404a-9abb-76a20e22c855\" DatabaseHost=\"hackybara-accounting.cteao02mo068.ap-southeast-1.rds.amazonaws.com\" DatabasePort=\"5432\" DatabaseName=\"postgres\" DatabaseUser=\"postgres\""
+parameter_overrides = "WebsiteBucketName=\"genai-accounting-website\" ReceiptsBucketName=\"genai-accounting-receipts\" RegionForBedrock=\"ap-southeast-1\" ModelId=\"amazon.nova-lite-v1:0\" OrganizationId=\"94fbdf4e-0e94-404a-9abb-76a20e22c855\" DatabaseHost=\"hackybara-accounting.cteao02mo068.ap-southeast-1.rds.amazonaws.com\" DatabasePort=\"5432\" DatabaseName=\"postgres\" DatabaseUser=\"postgres\""
 image_repositories = []

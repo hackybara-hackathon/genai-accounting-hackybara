@@ -112,19 +112,6 @@ Resources:
           AllowedOrigins:
           - '*'
           MaxAge: 3000
-  WebsiteBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket:
-        Ref: WebsiteBucket
-      PolicyDocument:
-        Statement:
-        - Sid: PublicReadGetObject
-          Effect: Allow
-          Principal: '*'
-          Action: s3:GetObject
-          Resource:
-            Fn::Sub: ${WebsiteBucket}/*
   ReceiptsBucket:
     Type: AWS::S3::Bucket
     Properties:
