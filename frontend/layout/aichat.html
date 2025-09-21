@@ -325,9 +325,9 @@
                 </div>
 
                 <!-- AI Chat Interface -->
-                <div class="bg-white rounded-lg shadow-sm h-[calc(100vh-180px)] flex flex-col">
+                <div class="bg-white rounded-lg shadow-sm h-screen flex flex-col">
                     <!-- Chat Header -->
-                    <div class="border-b border-gray-200 p-4">
+                    <div class="border-b border-gray-200 p-4 flex-none h-24">
                         <div class="flex items-center justify-between mb-3">
                             <div class="flex items-center">
                                 <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
@@ -351,12 +351,12 @@
                     </div>
                     
                     <!-- Chat Messages -->
-                    <div id="chatMessages" class="chat-messages flex-1 p-4 overflow-y-auto">
+                    <div id="chatMessages" class="chat-messages flex-1 min-h-0 p-4 overflow-y-auto">
                         <!-- Messages will be added here dynamically -->
                     </div>
                     
                     <!-- Suggested Questions -->
-                    <div class="border-t border-gray-200 p-4 bg-gray-50">
+                    <div class="border-t border-gray-200 p-4 bg-gray-50 flex-none">
                         <p class="text-sm text-gray-600 mb-3">💬 <strong>Quick Start Questions:</strong></p>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
                             <!-- General Questions -->
@@ -406,7 +406,7 @@
                     </div>
                     
                     <!-- Input Area -->
-                    <div class="border-t border-gray-200 p-4">
+                    <div class="border-t border-gray-200 p-4 flex-none">
                         <form id="chatForm" class="flex items-center space-x-2">
                             <input 
                                 type="text" 
