@@ -1,3 +1,64 @@
+# ===============================
+# LIST REPORTS HANDLER
+# ===============================
+def list_reports_handler(event, context):
+    """GET /list-reports - Return all reports for the organization"""
+    request_id = context.aws_request_id if context else str(uuid.uuid4())
+    logger.info(f"Request ID: {request_id}, Org ID: {ORG_ID}")
+    try:
+        with get_db_cursor() as cur:
+            cur.execute("SELECT * FROM reports WHERE organization_id = %s ORDER BY created_at DESC", (ORG_ID,))
+            reports = cur.fetchall()
+            # Convert to list of dicts
+            report_list = [dict(zip([desc[0] for desc in cur.description], row)) for row in reports]
+        return lambda_response(200, {"reports": report_list})
+    except Exception as e:
+        logger.error(f"List reports error: {str(e)}", exc_info=True)
+        return lambda_response(500, {"error": "Failed to list reports"})
+# ===============================
+# FINANCIAL REPORT GENERATION HANDLER
+# ===============================
+def generate_financial_report_handler(event, context):
+    """POST /generate-financial-report - Generate financial report PDF, upload to S3, save metadata"""
+    request_id = context.aws_request_id if context else str(uuid.uuid4())
+    logger.info(f"Request ID: {request_id}, Org ID: {ORG_ID}")
+    try:
+        # Get all transactions for the organization
+        with get_db_cursor() as cur:
+            cur.execute("SELECT * FROM transactions WHERE organization_id = %s", (ORG_ID,))
+            transactions = cur.fetchall()
+            tx_data = [dict(zip([desc[0] for desc in cur.description], row)) for row in transactions]
+
+        # Generate report summary using Bedrock
+        report = bedrock_client.generate_insights({'transactions': tx_data})
+        summary = report['summary']
+
+        # Generate PDF (simple text-based)
+        from fpdf import FPDF
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font('Arial', 'B', 16)
+        pdf.cell(0, 10, 'Financial Report', ln=True)
+        pdf.set_font('Arial', '', 12)
+        pdf.multi_cell(0, 10, summary)
+        pdf_file = f"report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        pdf.output(pdf_file)
+
+        # Upload PDF to S3
+        s3_key = f"reports/{pdf_file}"
+        with open(pdf_file, 'rb') as f:
+            s3_client.put_object(Bucket=BUCKET_NAME, Key=s3_key, Body=f, ContentType='application/pdf')
+        s3_url = get_s3_url(s3_key)
+
+        # Save report metadata to database
+        with get_db_cursor() as cur:
+            cur.execute("INSERT INTO reports (name, url, created_at) VALUES (%s, %s, %s)", (pdf_file, s3_url, datetime.now()))
+
+        logger.info(f"Report generated and uploaded: {s3_url}")
+        return lambda_response(200, {'status': 'success', 'url': s3_url, 'name': pdf_file})
+    except Exception as e:
+        logger.error(f"Financial report generation error: {str(e)}", exc_info=True)
+        return lambda_response(500, {'error': 'Failed to generate report'})
 import json
 import boto3
 import base64

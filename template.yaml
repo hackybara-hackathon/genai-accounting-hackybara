@@ -1,3 +1,62 @@
+  GenerateFinancialReportFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.generate_financial_report_handler
+      Layers:
+        - !Ref PsycopgLayer
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref WebsiteBucket
+        - S3WritePolicy:
+            BucketName: !Ref ReceiptsBucket
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - bedrock:InvokeModel
+              Resource: !Sub "arn:aws:bedrock:${RegionForBedrock}::foundation-model/${ModelId}"
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+      Events:
+        GenerateReportApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /generate-financial-report
+            Method: post
+
+  ListReportsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.list_reports_handler
+      Layers:
+        - !Ref PsycopgLayer
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref WebsiteBucket
+        - S3ReadPolicy:
+            BucketName: !Ref ReceiptsBucket
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+      Events:
+        ListReportsApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /list-reports
+            Method: get
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: GenAI-Enhanced Accounting Management System - Serverless MVP

@@ -30,6 +30,7 @@ const authRoutes = require('./backend/routes/authRoutes');
 const logoutRoutes = require('./backend/routes/logoutRoutes');
 const dashboardRoutes = require('./backend/routes/dashboardRoutes');
 const settingRoutes = require('./backend/routes/settingRoutes');
+const reportRoutes = require('./backend/routes/reportRoutes');
 
 app.use('/api/users', userRoutes);
 app.use('/api/register', registerRoutes);
@@ -38,6 +39,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/logout', logoutRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/settings', settingRoutes);
+
+// Report API
+app.use('/api/report', reportRoutes);
 
 // Serve static files from layout directory as root
 app.use(express.static(path.join(__dirname, 'frontend', 'layout')));
