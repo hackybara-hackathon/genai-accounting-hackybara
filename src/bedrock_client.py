@@ -214,6 +214,35 @@ JSON:"""
             logger.error(f"Error extracting response text: {str(e)}")
             return None
 
+    def _make_bedrock_call(self, prompt: str, max_tokens: int = 2048, temperature: float = 0.3) -> str:
+        """
+        Generic method to make Bedrock API calls for text generation
+        """
+        try:
+            # Prepare request body based on model type
+            body = self._prepare_request_body(prompt, max_tokens, temperature)
+            
+            # Make API call to Bedrock
+            response = self.client.invoke_model(
+                modelId=self.model_id,
+                body=body
+            )
+            
+            # Parse response
+            response_body = json.loads(response['body'].read())
+            text_content = self._extract_response_text(response_body)
+            
+            if text_content:
+                logger.info(f"Successfully generated response using {self.model_type.upper()} model")
+                return text_content
+            else:
+                logger.warning(f"No valid response from {self.model_type.upper()} model")
+                return "I apologize, but I'm having trouble generating a response right now. Please try again."
+                
+        except Exception as e:
+            logger.error(f"Bedrock API call failed with {self.model_type.upper()} model: {str(e)}")
+            return f"I'm currently experiencing technical difficulties with the AI service. Please try again later. Error: {str(e)[:100]}..."
+
     def generate_insights(self, context_data: Dict) -> Dict[str, any]:
         """
         Generate business insights using multiple AI models with grounded context
@@ -547,7 +576,9 @@ Make your recommendations specific, realistic, and achievable based on the user'
         if conversation_context:
             context = "Previous conversation:\n"
             for msg in conversation_context[-3:]:  # Last 3 messages for context
-                context += f"{msg.get('role', 'user')}: {msg.get('message', '')}\n"
+                role = msg.get('role', 'user')
+                content = msg.get('content', msg.get('message', ''))  # Support both 'content' and 'message'
+                context += f"{role}: {content}\n"
             context += "\n"
 
         prompt = f"""You are an intelligent assistant specializing in accounting, finance, business management, and tax preparation. You provide helpful, accurate, and professional advice.

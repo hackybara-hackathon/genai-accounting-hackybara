@@ -83,6 +83,12 @@
                     // Add user message to chat
                     addMessage(message, 'user');
                     
+                    // Hide suggested questions after first message
+                    const suggestedQuestions = document.getElementById('suggestedQuestions');
+                    if (suggestedQuestions) {
+                        suggestedQuestions.style.display = 'none';
+                    }
+                    
                     // Update conversation context
                     conversationContext.push({
                         role: 'user',
@@ -352,10 +358,9 @@
                     <!-- Chat Messages -->
                     <div id="chatMessages" class="chat-messages flex-1 min-h-0 p-4 overflow-y-auto">
                         <!-- Messages will be added here dynamically -->
-                    </div>
-                    
-                    <!-- Suggested Questions -->
-                    <div class="border-t border-gray-200 p-4 bg-gray-50 flex-none">
+                        
+                        <!-- Suggested Questions (initially visible, hidden after first message) -->
+                        <div id="suggestedQuestions" class="suggested-questions-container p-4 bg-gray-50 rounded-lg mb-4 border">
                         <p class="text-sm text-gray-600 mb-3">💬 <strong>Quick Start Questions:</strong></p>
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
                             <!-- General Questions -->
@@ -401,6 +406,7 @@
                                     Where can I reduce spending?
                                 </button>
                             </div>
+                        </div>
                         </div>
                     </div>
                     
