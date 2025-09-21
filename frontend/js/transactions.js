@@ -1,4 +1,15 @@
 // Transactions page functionality
+// Session check for transactions page
+fetch('/api/auth/current', { credentials: 'include' })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.user) {
+            window.location.href = 'login.html';
+        }
+    })
+    .catch(() => {
+        window.location.href = 'login.html';
+    });
 let currentPage = 0;
 const transactionsPerPage = 20;
 let currentFilters = {};

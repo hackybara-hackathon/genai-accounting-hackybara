@@ -22,10 +22,14 @@ function loadMockUser() {
 }
 
 function logout() {
-  // For MVP, just show alert - implement real logout later
   if (confirm('Are you sure you want to logout?')) {
-    alert('Logout functionality will be implemented in next version');
-    // window.location.href = 'login.html';
+    fetch('/api/logout', { method: 'POST', credentials: 'include' })
+      .then(() => {
+        window.location.href = 'login.html';
+      })
+      .catch(() => {
+        window.location.href = 'login.html';
+      });
   }
 }
 

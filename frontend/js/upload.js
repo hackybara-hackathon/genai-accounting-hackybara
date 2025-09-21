@@ -1,4 +1,15 @@
 // Upload functionality for receipt processing
+// Session check for upload page
+fetch('/api/auth/current', { credentials: 'include' })
+    .then(res => res.json())
+    .then(data => {
+        if (!data.user) {
+            window.location.href = 'login.html';
+        }
+    })
+    .catch(() => {
+        window.location.href = 'login.html';
+    });
 let selectedFile = null;
 
 document.addEventListener('DOMContentLoaded', function() {
