@@ -9,6 +9,7 @@
         <title>Hackybara Accounting - AI Chat</title>
         <link rel="icon" href="../icon/icon.png" type="image/x-icon">
         <script src="../js/script.js" defer></script>
+        <script src="../js/config.js"></script>
         <script>
             // JavaScript functions
             function openNav() {
@@ -25,25 +26,55 @@
                 alert("Logout functionality would go here");
             }
             
-            // AI Chat functionality
+            // Load navbar and sidebar components
             document.addEventListener('DOMContentLoaded', function() {
+                // Load navbar
+                fetch('navbar.html')
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById('navbar-container').innerHTML = data;
+                    });
+                
+                // Load sidebar
+                fetch('sidebar.html')
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById('sidebar-container').innerHTML = data;
+                        // Update active state for AI Chat
+                        const aiChatLink = document.querySelector('a[href="aichat.html"]');
+                        if (aiChatLink) {
+                            aiChatLink.className = 'flex items-center p-3 rounded-lg bg-blue-100 text-blue-600 font-medium mb-2';
+                        }
+                    });
+                
+                // Load mobile sidebar
+                fetch('sidebar_mobile.html')
+                    .then(response => response.text())
+                    .then(data => {
+                        document.getElementById('sidebar-mobile').innerHTML = data;
+                    });
+                
+                // Initialize AI Chat functionality
+                initializeAIChat();
+            });
+            
+            function initializeAIChat() {
                 const chatForm = document.getElementById('chatForm');
                 const userInput = document.getElementById('userInput');
                 const chatMessages = document.getElementById('chatMessages');
+                const chatMode = document.getElementById('chatMode');
                 
-                // Sample responses for demo purposes
-                const sampleResponses = [
-                    "I can help you analyze your financial data. What specific reports are you interested in?",
-                    "Based on your transaction history, I notice that your expenses have increased by 15% compared to last month. Would you like me to generate a detailed expense report?",
-                    "I'd be happy to help you forecast your cash flow. Please provide me with your expected income and expenses for the next quarter.",
-                    "Your profit margin has improved by 8% compared to the previous quarter. Great job!",
-                    "I can assist with tax preparation. Please make sure you have all your receipts and financial documents organized."
-                ];
+                // Initialize API config
+                const apiConfig = new APIConfig();
+                
+                // Conversation context for maintaining chat history
+                let conversationContext = [];
                 
                 // Add welcome message
-                addMessage("Hi! I'm Hackybara AI Assistant. How can I help with your accounting today?", "ai");
+                addMessage("Hi! I'm Hackybara AI Assistant. I can help you with:", "ai");
+                addMessage("📊 **General Questions** - Ask anything about accounting or finance\n💼 **Tax Preparation** - Get help with tax planning and deductions\n💰 **Financial Advisory** - Receive personalized financial advice\n📈 **Budget Planning** - Get custom budget recommendations\n\nWhat would you like assistance with today?", "ai");
                 
-                chatForm.addEventListener('submit', function(e) {
+                chatForm.addEventListener('submit', async function(e) {
                     e.preventDefault();
                     
                     const message = userInput.value.trim();
@@ -52,10 +83,130 @@
                     // Add user message to chat
                     addMessage(message, 'user');
                     
+                    // Update conversation context
+                    conversationContext.push({
+                        role: 'user',
+                        message: message
+                    });
+                    
                     // Clear input
                     userInput.value = '';
                     
                     // Show typing indicator
+                    showTypingIndicator();
+                    
+                    try {
+                        let response;
+                        const mode = chatMode.value;
+                        
+                        switch(mode) {
+                            case 'tax':
+                                response = await getTaxAdvice(message);
+                                break;
+                            case 'financial':
+                                response = await getFinancialAdvice(message);
+                                break;
+                            case 'budget':
+                                response = await getBudgetRecommendations(message);
+                                break;
+                            default:
+                                response = await getGeneralChat(message);
+                        }
+                        
+                        // Remove typing indicator
+                        removeTypingIndicator();
+                        
+                        // Add AI response to chat
+                        addMessage(response, 'ai');
+                        
+                        // Update conversation context
+                        conversationContext.push({
+                            role: 'ai',
+                            message: response
+                        });
+                        
+                        // Keep only last 10 messages for context
+                        if (conversationContext.length > 10) {
+                            conversationContext = conversationContext.slice(-10);
+                        }
+                        
+                    } catch (error) {
+                        console.error('Chat error:', error);
+                        removeTypingIndicator();
+                        addMessage("I'm sorry, I'm having trouble connecting right now. Please try again in a moment.", 'ai', true);
+                    }
+                });
+                
+                // Suggested questions with smart routing
+                const suggestedQuestions = document.querySelectorAll('.suggested-question');
+                suggestedQuestions.forEach(question => {
+                    question.addEventListener('click', function() {
+                        userInput.value = this.textContent;
+                        
+                        // Auto-set mode based on question type
+                        const text = this.textContent.toLowerCase();
+                        if (text.includes('tax') || text.includes('deduction')) {
+                            chatMode.value = 'tax';
+                        } else if (text.includes('financial') || text.includes('invest')) {
+                            chatMode.value = 'financial';
+                        } else if (text.includes('budget') || text.includes('spending')) {
+                            chatMode.value = 'budget';
+                        } else {
+                            chatMode.value = 'general';
+                        }
+                        
+                        updateModeDisplay();
+                        userInput.focus();
+                    });
+                });
+                
+                // Mode selector
+                chatMode.addEventListener('change', updateModeDisplay);
+                updateModeDisplay();
+                
+                // API Functions
+                async function getTaxAdvice(query) {
+                    const response = await apiConfig.post('/ai/tax-advisor', { query });
+                    return response.advice;
+                }
+                
+                async function getFinancialAdvice(query) {
+                    const response = await apiConfig.post('/ai/financial-advisor', { query });
+                    return response.advice;
+                }
+                
+                async function getBudgetRecommendations(message) {
+                    const goals = message; // User message becomes their goals
+                    const response = await apiConfig.post('/ai/budget-recommendations', { goals });
+                    return response.recommendations;
+                }
+                
+                async function getGeneralChat(message) {
+                    const response = await apiConfig.post('/ai/chat', { 
+                        message, 
+                        context: conversationContext 
+                    });
+                    return response.response;
+                }
+                
+                // UI Helper Functions
+                function updateModeDisplay() {
+                    const mode = chatMode.value;
+                    const modeDisplay = document.getElementById('modeDisplay');
+                    const modeIcon = document.getElementById('modeIcon');
+                    const descriptions = {
+                        general: { icon: 'chat', text: 'General Assistant', desc: 'Ask me anything about accounting' },
+                        tax: { icon: 'receipt_long', text: 'Tax Advisor', desc: 'Tax preparation and planning help' },
+                        financial: { icon: 'trending_up', text: 'Financial Advisor', desc: 'Personalized financial guidance' },
+                        budget: { icon: 'savings', text: 'Budget Planner', desc: 'Custom budget recommendations' }
+                    };
+                    
+                    const config = descriptions[mode];
+                    modeIcon.textContent = config.icon;
+                    modeDisplay.innerHTML = `<strong>${config.text}</strong><br><small class="text-gray-500">${config.desc}</small>`;
+                }
+                
+                function showTypingIndicator() {
                     const typingIndicator = document.createElement('div');
                     typingIndicator.id = 'typingIndicator';
                     typingIndicator.className = 'flex items-start space-x-2 mb-4';
@@ -71,46 +222,37 @@
                     `;
                     chatMessages.appendChild(typingIndicator);
                     chatMessages.scrollTop = chatMessages.scrollHeight;
-                    
-                    // Simulate AI response after a delay
-                    setTimeout(function() {
-                        // Remove typing indicator
-                        document.getElementById('typingIndicator').remove();
-                        
-                        // Get random response
-                        const response = sampleResponses[Math.floor(Math.random() * sampleResponses.length)];
-                        
-                        // Add AI response to chat
-                        addMessage(response, 'ai');
-                    }, 1500);
-                });
+                }
                 
-                // Suggested questions
-                const suggestedQuestions = document.querySelectorAll('.suggested-question');
-                suggestedQuestions.forEach(question => {
-                    question.addEventListener('click', function() {
-                        userInput.value = this.textContent;
-                        userInput.focus();
-                    });
-                });
+                function removeTypingIndicator() {
+                    const indicator = document.getElementById('typingIndicator');
+                    if (indicator) {
+                        indicator.remove();
+                    }
+                }
                 
-                function addMessage(text, sender) {
+                function addMessage(text, sender, isError = false) {
                     const messageDiv = document.createElement('div');
                     messageDiv.className = `flex items-start space-x-2 mb-4 ${sender === 'user' ? 'justify-end' : ''}`;
                     
+                    // Format text with markdown-like formatting
+                    const formattedText = formatMessage(text);
+                    
                     if (sender === 'ai') {
+                        const bgColor = isError ? 'bg-red-100' : 'bg-gray-100';
+                        const textColor = isError ? 'text-red-800' : 'text-gray-800';
                         messageDiv.innerHTML = `
                             <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
                                 <span class="material-symbols-outlined text-blue-600">robot_2</span>
                             </div>
-                            <div class="bg-gray-100 rounded-lg p-3 max-w-[70%]">
-                                <p class="text-gray-800">${text}</p>
+                            <div class="${bgColor} rounded-lg p-3 max-w-[80%]">
+                                <div class="${textColor}">${formattedText}</div>
                             </div>
                         `;
                     } else {
                         messageDiv.innerHTML = `
-                            <div class="bg-blue-600 text-white rounded-lg p-3 max-w-[70%]">
-                                <p>${text}</p>
+                            <div class="bg-blue-600 text-white rounded-lg p-3 max-w-[80%]">
+                                <div>${formattedText}</div>
                             </div>
                             <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
                                 <span class="material-symbols-outlined text-white">person</span>
@@ -121,7 +263,17 @@
                     chatMessages.appendChild(messageDiv);
                     chatMessages.scrollTop = chatMessages.scrollHeight;
                 }
-            });
+                
+                function formatMessage(text) {
+                    // Simple markdown-like formatting
+                    return text
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                        .replace(/\n/g, '<br>')
+                        .replace(/(\d+\.)/g, '<br><strong>$1</strong>')
+                        .replace(/^(📊|💼|💰|📈|🎯|💡|⚠️|✅)/gm, '<br>$1');
+                }
+            }
         </script>
         <style>
             .material-symbols-outlined {
@@ -154,13 +306,12 @@
         </style>
     </head>
     <body class="bg-gray-100">
-        <!--NAVIGATION BAR-->
-        <div id="navbar"></div>
+        <!-- Navbar Container -->
+        <div id="navbar-container"></div>
         
         <div class="container flex mt-20">
-            <!--ASIDE SECTION START-->
-            <div id="sidebar"></div>
-            <!--ASIDE SECTION END-->
+            <!-- Sidebar Container -->
+            <div id="sidebar-container"></div>
 
             <!--MAIN SECTION START-->
             <main class="flex-1 md:ml-64 p-6">
@@ -175,13 +326,26 @@
                 <!-- AI Chat Interface -->
                 <div class="bg-white rounded-lg shadow-sm h-[calc(100vh-180px)] flex flex-col">
                     <!-- Chat Header -->
-                    <div class="border-b border-gray-200 p-4 flex items-center">
-                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
-                            <span class="material-symbols-outlined text-blue-600">robot_2</span>
+                    <div class="border-b border-gray-200 p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center">
+                                <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                                    <span id="modeIcon" class="material-symbols-outlined text-blue-600">chat</span>
+                                </div>
+                                <div id="modeDisplay">
+                                    <h3 class="font-semibold">General Assistant</h3>
+                                    <p class="text-sm text-gray-500">Ask me anything about accounting</p>
+                                </div>
+                            </div>
+                            <select id="chatMode" class="border border-gray-300 rounded-lg px-3 py-1 text-sm">
+                                <option value="general">General Chat</option>
+                                <option value="tax">Tax Advisor</option>
+                                <option value="financial">Financial Advisor</option>
+                                <option value="budget">Budget Planner</option>
+                            </select>
                         </div>
-                        <div>
-                            <h3 class="font-semibold">Hackybara AI Assistant</h3>
-                            <p class="text-sm text-gray-500">Powered by advanced accounting intelligence</p>
+                        <div class="text-xs text-gray-500 bg-blue-50 rounded-lg p-2">
+                            💡 <strong>Tip:</strong> Select the appropriate mode above for specialized assistance, or use General Chat for mixed questions.
                         </div>
                     </div>
                     
@@ -192,20 +356,51 @@
                     
                     <!-- Suggested Questions -->
                     <div class="border-t border-gray-200 p-4 bg-gray-50">
-                        <p class="text-sm text-gray-600 mb-2">Try asking:</p>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="suggested-question text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full">
-                                How can I improve my cash flow?
-                            </button>
-                            <button class="suggested-question text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full">
-                                Generate a profit and loss report
-                            </button>
-                            <button class="suggested-question text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full">
-                                Analyze my expenses
-                            </button>
-                            <button class="suggested-question text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1.5 rounded-full">
-                                Help with tax preparation
-                            </button>
+                        <p class="text-sm text-gray-600 mb-3">💬 <strong>Quick Start Questions:</strong></p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                            <!-- General Questions -->
+                            <div class="space-y-1">
+                                <p class="text-xs text-gray-500 font-medium">🤖 General</p>
+                                <button class="suggested-question text-xs bg-white hover:bg-blue-50 text-gray-700 px-3 py-2 rounded-lg border w-full text-left">
+                                    What are my biggest expenses?
+                                </button>
+                                <button class="suggested-question text-xs bg-white hover:bg-blue-50 text-gray-700 px-3 py-2 rounded-lg border w-full text-left">
+                                    How can I improve my cash flow?
+                                </button>
+                            </div>
+                            
+                            <!-- Tax Questions -->
+                            <div class="space-y-1">
+                                <p class="text-xs text-gray-500 font-medium">📋 Tax Help</p>
+                                <button class="suggested-question text-xs bg-white hover:bg-green-50 text-gray-700 px-3 py-2 rounded-lg border w-full text-left">
+                                    What business expenses can I deduct?
+                                </button>
+                                <button class="suggested-question text-xs bg-white hover:bg-green-50 text-gray-700 px-3 py-2 rounded-lg border w-full text-left">
+                                    Help me prepare for tax season
+                                </button>
+                            </div>
+                            
+                            <!-- Financial Questions -->
+                            <div class="space-y-1">
+                                <p class="text-xs text-gray-500 font-medium">💰 Financial</p>
+                                <button class="suggested-question text-xs bg-white hover:bg-purple-50 text-gray-700 px-3 py-2 rounded-lg border w-full text-left">
+                                    Analyze my financial health
+                                </button>
+                                <button class="suggested-question text-xs bg-white hover:bg-purple-50 text-gray-700 px-3 py-2 rounded-lg border w-full text-left">
+                                    Investment recommendations for my business
+                                </button>
+                            </div>
+                            
+                            <!-- Budget Questions -->
+                            <div class="space-y-1">
+                                <p class="text-xs text-gray-500 font-medium">📊 Budget</p>
+                                <button class="suggested-question text-xs bg-white hover:bg-orange-50 text-gray-700 px-3 py-2 rounded-lg border w-full text-left">
+                                    Create a budget plan for next quarter
+                                </button>
+                                <button class="suggested-question text-xs bg-white hover:bg-orange-50 text-gray-700 px-3 py-2 rounded-lg border w-full text-left">
+                                    Where can I reduce spending?
+                                </button>
+                            </div>
                         </div>
                     </div>
                     
@@ -231,18 +426,13 @@
             </main>
             <!--MAIN SECTION END--> 
         </div>
+        
+        <!-- Loading overlay -->
+        <div id="loadingOverlay" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-white rounded-lg p-6 flex items-center space-x-3">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span class="text-gray-700">Processing your request...</span>
+            </div>
+        </div>
     </body>
-    <script>
-        // Sidebar and navbar includes via JS
-        function loadInclude(id, file) {
-            fetch(file)
-                .then(response => response.text())
-                .then(html => {
-                    document.getElementById(id).innerHTML = html;
-                });
-        }
-        loadInclude('navbar', '../layout/navbar.html');
-        loadInclude('sidebar', '../layout/sidebar.html');
-        loadInclude('sidebar-mobile', '../layout/sidebar_mobile.html');
-    </script>
 </html>

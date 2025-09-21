@@ -302,6 +302,130 @@ Resources:
             Method: post
     Metadata:
       SamResourceId: InsightsFunction
+  TaxAdvisorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: TaxAdvisorFunction
+      Handler: handlers.tax_advisor_handler
+      Layers:
+      - Ref: PsycopgLayer
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - bedrock:InvokeModel
+          Resource:
+            Fn::Sub: arn:aws:bedrock:${RegionForBedrock}::foundation-model/${ModelId}
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+      Events:
+        TaxAdvisorApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGateway
+            Path: /ai/tax-advisor
+            Method: post
+    Metadata:
+      SamResourceId: TaxAdvisorFunction
+  FinancialAdvisorFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: FinancialAdvisorFunction
+      Handler: handlers.financial_advisor_handler
+      Layers:
+      - Ref: PsycopgLayer
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - bedrock:InvokeModel
+          Resource:
+            Fn::Sub: arn:aws:bedrock:${RegionForBedrock}::foundation-model/${ModelId}
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+      Events:
+        FinancialAdvisorApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGateway
+            Path: /ai/financial-advisor
+            Method: post
+    Metadata:
+      SamResourceId: FinancialAdvisorFunction
+  BudgetRecommendationsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: BudgetRecommendationsFunction
+      Handler: handlers.budget_recommendations_handler
+      Layers:
+      - Ref: PsycopgLayer
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - bedrock:InvokeModel
+          Resource:
+            Fn::Sub: arn:aws:bedrock:${RegionForBedrock}::foundation-model/${ModelId}
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+      Events:
+        BudgetRecommendationsApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGateway
+            Path: /ai/budget-recommendations
+            Method: post
+    Metadata:
+      SamResourceId: BudgetRecommendationsFunction
+  AiChatFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: AiChatFunction
+      Handler: handlers.ai_chat_handler
+      Layers:
+      - Ref: PsycopgLayer
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - bedrock:InvokeModel
+          Resource:
+            Fn::Sub: arn:aws:bedrock:${RegionForBedrock}::foundation-model/${ModelId}
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+      Events:
+        AiChatApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGateway
+            Path: /ai/chat
+            Method: post
+    Metadata:
+      SamResourceId: AiChatFunction
   PsycopgLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:

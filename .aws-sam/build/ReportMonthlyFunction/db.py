@@ -132,9 +132,9 @@ def insert_ocr_result(cur, org_id: str, document_id: str, vendor_id: Optional[st
     result = cur.fetchone()
     return result['id']
 
-def insert_transaction(cur, org_id: str, document_id: str, ocr_result_id: str, 
+def insert_transaction(cur, org_id: str, ocr_result_id: str, 
                       vendor_id: Optional[str], account_id: Optional[str], 
-                      categories_id: str, description: str, amount: float, 
+                      category_id: str, description: str, amount: float, 
                       currency: str, invoice_date: Optional[str], 
                       tx_type: str = 'expense') -> str:
     """Insert transaction and return transaction_id"""
@@ -144,14 +144,14 @@ def insert_transaction(cur, org_id: str, document_id: str, ocr_result_id: str,
     
     cur.execute("""
         INSERT INTO transactions (
-            id, organization_id, document_id, ocr_result_id, vendor_id, 
-            account_id, categories_id, description, amount, currency, 
+            id, organization_id, ocr_result_id, vendor_id, 
+            account_id, category_id, description, amount, currency, 
             invoice_date, type, created_at, updated_at
         )
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, NOW(), NOW())
         RETURNING id
-    """, (transaction_id, org_id, document_id, ocr_result_id, vendor_id, 
-          account_id, categories_id, description, amount, currency, 
+    """, (transaction_id, org_id, ocr_result_id, vendor_id, 
+          account_id, category_id, description, amount, currency, 
           invoice_date, tx_type))
     
     result = cur.fetchone()
@@ -189,9 +189,9 @@ def get_transactions_with_filters(cur, org_id: str, limit: int = 50, offset: int
         SELECT COUNT(*) as total
         FROM transactions t
         LEFT JOIN vendors v ON v.id = t.vendor_id
-        LEFT JOIN categories c ON c.id = t.categories_id
+        LEFT JOIN categories c ON c.id = t.category_id
         LEFT JOIN accounts a ON a.id = t.account_id
-        LEFT JOIN documents d ON d.id = t.document_id
+
         WHERE {where_clause}
     """
     
@@ -213,9 +213,9 @@ def get_transactions_with_filters(cur, org_id: str, limit: int = 50, offset: int
             t.type
         FROM transactions t
         LEFT JOIN vendors v ON v.id = t.vendor_id
-        LEFT JOIN categories c ON c.id = t.categories_id
+        LEFT JOIN categories c ON c.id = t.category_id
         LEFT JOIN accounts a ON a.id = t.account_id
-        LEFT JOIN documents d ON d.id = t.document_id
+
         WHERE {where_clause}
         ORDER BY COALESCE(t.invoice_date, t.created_at) DESC
         LIMIT %s OFFSET %s
@@ -260,7 +260,7 @@ def get_summary_data(cur, org_id: str) -> Dict[str, Any]:
     cur.execute("""
         SELECT c.name, SUM(t.amount) as total
         FROM transactions t
-        LEFT JOIN categories c ON c.id = t.categories_id
+        LEFT JOIN categories c ON c.id = t.category_id
         WHERE t.organization_id = %s AND t.type = 'expense'
         GROUP BY c.name
         ORDER BY total DESC
@@ -275,7 +275,7 @@ def get_summary_data(cur, org_id: str) -> Dict[str, Any]:
             COALESCE(c.name, 'Uncategorized') as category,
             SUM(t.amount) as total
         FROM transactions t
-        LEFT JOIN categories c ON c.id = t.categories_id
+        LEFT JOIN categories c ON c.id = t.category_id
         WHERE t.organization_id = %s 
             AND t.type = 'expense'
             AND COALESCE(t.invoice_date, t.created_at::date) >= CURRENT_DATE - INTERVAL '90 days'
@@ -315,7 +315,7 @@ def get_monthly_report(cur, org_id: str, year: int) -> List[Dict]:
             COALESCE(c.name, 'Uncategorized') AS category,
             SUM(t.amount) AS total
         FROM transactions t
-        LEFT JOIN categories c ON c.id = t.categories_id
+        LEFT JOIN categories c ON c.id = t.category_id
         WHERE t.organization_id = %s 
             AND DATE_PART('year', COALESCE(t.invoice_date, t.created_at)) = %s
         GROUP BY 1, 2

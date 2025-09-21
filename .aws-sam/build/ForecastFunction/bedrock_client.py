@@ -411,5 +411,162 @@ def keyword_guess(text: str) -> str:
     
     return "Others"
 
-# Initialize global client
+    def tax_preparation_advisor(self, user_query: str, transaction_data: Dict = None) -> str:
+        """
+        AI Tax Preparation Assistant - Provides guidance on tax preparation,
+        deductions, and compliance based on user's financial data
+        """
+        context = ""
+        if transaction_data:
+            context = f"""
+User's Financial Context:
+- Total Expenses: ${transaction_data.get('total_expenses', 0):,.2f}
+- Business Expenses: ${transaction_data.get('business_expenses', 0):,.2f}
+- Receipt Count: {transaction_data.get('receipt_count', 0)}
+- Top Categories: {', '.join(transaction_data.get('top_categories', []))}
+"""
+
+        prompt = f"""You are a professional tax preparation advisor with expertise in small business and personal tax planning. 
+
+{context}
+
+User Question: {user_query}
+
+Please provide specific, actionable tax advice including:
+1. Relevant tax deductions and strategies
+2. Required documentation and record-keeping
+3. Deadlines and compliance requirements
+4. Potential tax-saving opportunities
+5. Next steps for implementation
+
+Keep your advice practical and cite relevant tax regulations when appropriate."""
+
+        try:
+            return self._make_bedrock_call(prompt)
+        except Exception as e:
+            logger.error(f"Tax advisor error: {str(e)}")
+            return "I apologize, but I'm unable to provide tax advice at the moment. Please consult with a qualified tax professional for personalized guidance."
+
+    def financial_advisor(self, user_query: str, financial_summary: Dict = None) -> str:
+        """
+        AI Financial Advisor - Provides personalized financial advice based on
+        spending patterns, cash flow, and financial goals
+        """
+        context = ""
+        if financial_summary:
+            context = f"""
+User's Financial Profile:
+- Monthly Average Spending: ${financial_summary.get('monthly_avg', 0):,.2f}
+- Cash Flow Trend: {financial_summary.get('trend', 'Unknown')}
+- Largest Expense Categories: {', '.join(financial_summary.get('top_categories', []))}
+- Spending Variance: {financial_summary.get('variance', 'Stable')}
+- Recent Transactions: {financial_summary.get('recent_count', 0)}
+"""
+
+        prompt = f"""You are a certified financial advisor with expertise in personal finance, budgeting, and investment planning.
+
+{context}
+
+User Question: {user_query}
+
+Please provide comprehensive financial advice including:
+1. Analysis of current spending patterns
+2. Specific recommendations for improvement
+3. Actionable steps to achieve financial goals
+4. Risk assessment and mitigation strategies
+5. Long-term financial planning suggestions
+
+Make your advice practical, measurable, and tailored to the user's financial situation."""
+
+        try:
+            return self._make_bedrock_call(prompt)
+        except Exception as e:
+            logger.error(f"Financial advisor error: {str(e)}")
+            return "I'm currently unable to provide financial advice. Please try again later or consult with a financial advisor."
+
+    def budget_recommendations(self, spending_data: Dict, user_goals: str = "") -> str:
+        """
+        AI Budget Advisor - Creates personalized budget recommendations based on
+        historical spending patterns and financial goals
+        """
+        total_spending = spending_data.get('total_spending', 0)
+        category_breakdown = spending_data.get('categories', {})
+        monthly_trend = spending_data.get('monthly_trend', 'stable')
+        
+        category_analysis = ""
+        for category, amount in category_breakdown.items():
+            percentage = (amount / total_spending * 100) if total_spending > 0 else 0
+            category_analysis += f"- {category}: ${amount:,.2f} ({percentage:.1f}%)\n"
+
+        prompt = f"""You are a professional budget planning expert specializing in personal and small business financial management.
+
+CURRENT SPENDING ANALYSIS:
+Total Monthly Spending: ${total_spending:,.2f}
+Spending Trend: {monthly_trend}
+
+Category Breakdown:
+{category_analysis}
+
+User Goals: {user_goals or 'Not specified'}
+
+Please create a comprehensive budget recommendation including:
+
+1. SPENDING ANALYSIS:
+   - Identify areas of overspending
+   - Highlight efficient spending categories
+   - Compare to recommended budget percentages
+
+2. PERSONALIZED BUDGET PLAN:
+   - Suggested monthly limits per category
+   - Specific reduction targets for overspending areas
+   - Reallocation recommendations
+
+3. ACTIONABLE STRATEGIES:
+   - 3-5 specific steps to reduce expenses
+   - Tools and methods for tracking progress
+   - Timeline for achieving budget goals
+
+4. SAVINGS OPPORTUNITIES:
+   - Immediate cost-cutting possibilities
+   - Long-term optimization strategies
+   - Emergency fund recommendations
+
+Make your recommendations specific, realistic, and achievable based on the user's current spending patterns."""
+
+        try:
+            return self._make_bedrock_call(prompt)
+        except Exception as e:
+            logger.error(f"Budget recommendations error: {str(e)}")
+            return "I'm unable to generate budget recommendations at the moment. Please ensure your financial data is available and try again."
+
+    def general_ai_chat(self, user_message: str, conversation_context: List[Dict] = None) -> str:
+        """
+        General AI Assistant for accounting, finance, and business questions
+        """
+        context = ""
+        if conversation_context:
+            context = "Previous conversation:\n"
+            for msg in conversation_context[-3:]:  # Last 3 messages for context
+                context += f"{msg.get('role', 'user')}: {msg.get('message', '')}\n"
+            context += "\n"
+
+        prompt = f"""You are an intelligent assistant specializing in accounting, finance, business management, and tax preparation. You provide helpful, accurate, and professional advice.
+
+{context}Current question: {user_message}
+
+Please provide a comprehensive and helpful response. If the question is about:
+- Accounting: Provide clear explanations with examples
+- Finance: Offer practical advice and calculations when relevant
+- Tax matters: Give general guidance but recommend consulting professionals for specific situations
+- Business: Share actionable insights and best practices
+
+Keep your response informative yet accessible, and always prioritize accuracy and helpfulness."""
+
+        try:
+            return self._make_bedrock_call(prompt)
+        except Exception as e:
+            logger.error(f"General chat error: {str(e)}")
+            return "I apologize, but I'm experiencing technical difficulties. Please try your question again."
+
+# Initialize global client - updated with AI enhancements
 bedrock_client = BedrockClient()
