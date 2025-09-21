@@ -1,6 +1,12 @@
 # PostgreSQL Database
 psycopg2-binary==2.9.9
 
+# JWT Authentication
+PyJWT==2.8.0
+
+# Password Hashing
+bcrypt==4.0.1
+
 # AWS SDK (available in Lambda runtime, but needed for local development)
 # boto3==1.34.0
 

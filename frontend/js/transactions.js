@@ -1,15 +1,4 @@
 // Transactions page functionality
-// Session check for transactions page
-fetch('/api/auth/current', { credentials: 'include' })
-    .then(res => res.json())
-    .then(data => {
-        if (!data.user) {
-            window.location.href = 'login.html';
-        }
-    })
-    .catch(() => {
-        window.location.href = 'login.html';
-    });
 let currentPage = 0;
 const transactionsPerPage = 20;
 let currentFilters = {};
@@ -76,10 +65,12 @@ async function loadTransactions(page = 0) {
         });
         
         // Call transactions API
-        const url = `transactions?${params.toString()}`;
-        const data = await API.apiCall('transactions', {
-            method: 'GET'
-        });
+        const queryParams = {
+            limit: transactionsPerPage,
+            offset: page * transactionsPerPage,
+            ...currentFilters
+        };
+        const data = await API.get('transactions', queryParams);
         
         // Update table
         updateTransactionsTable(data.items || []);

@@ -403,6 +403,79 @@ Resources:
             Path: /ai/chat
             Method: post
 
+  # Authentication Functions
+  LoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.login_handler
+      Layers:
+        - !Ref PsycopgLayer
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+      Events:
+        LoginApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /login
+            Method: post
+
+  RegisterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.register_handler
+      Layers:
+        - !Ref PsycopgLayer
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+      Events:
+        RegisterApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /register
+            Method: post
+
+  AuthCurrentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.auth_current_handler
+      Layers:
+        - !Ref PsycopgLayer
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+      Events:
+        AuthCurrentApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /auth/current
+            Method: get
+
   # Lambda Layer for psycopg2
   PsycopgLayer:
     Type: AWS::Serverless::LayerVersion

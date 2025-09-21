@@ -4,6 +4,9 @@ import base64
 import uuid
 import os
 import logging
+import hashlib
+import jwt
+import bcrypt
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 import statistics
@@ -28,6 +31,28 @@ s3_client = boto3.client('s3')
 # Environment variables
 ORG_ID = os.environ['ORG_ID']
 BUCKET_NAME = os.environ['BUCKET_NAME']
+
+def hash_password(password: str) -> str:
+    """Hash a password using bcrypt"""
+    try:
+        import bcrypt
+        # Generate salt and hash password
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(password.encode('utf-8'), salt)
+        return hashed.decode('utf-8')
+    except ImportError:
+        # Fallback to simple hashing if bcrypt not available
+        logger.warning("bcrypt not available, using simple hash")
+        return hashlib.sha256(password.encode()).hexdigest()
+
+def verify_password(password: str, hashed: str) -> bool:
+    """Verify a password against its hash"""
+    try:
+        import bcrypt
+        return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+    except ImportError:
+        # Fallback for simple hash
+        return hashlib.sha256(password.encode()).hexdigest() == hashed
 
 def upload_to_s3(file_b64: str, filename: str) -> str:
     """Upload base64 file to S3 and return S3 key"""
@@ -109,15 +134,24 @@ def classify_handler(event, context):
         
         # Extract required fields
         file_base64 = request_data.get('file_base64', '')
-        filename = request_data.get('filename', 'receipt.jpg')
+        filename = request_data.get('filename', 'receipt.txt')
         ocr_text = request_data.get('ocr_text', '')
+        user_id = request_data.get('user_id', '')
+        org_id = request_data.get('organization_id', ORG_ID)  # Use provided org_id or fallback to env var
         
-        if not file_base64:
-            return lambda_response(400, {'error': 'file_base64 is required'})
+        # Require either file_base64 or ocr_text
+        if not file_base64 and not ocr_text:
+            return lambda_response(400, {'error': 'Either file_base64 or ocr_text is required'})
         
-        # Upload file to S3
-        s3_key = upload_to_s3(file_base64, filename)
-        document_url = get_s3_url(s3_key)
+        # Require user_id for proper document ownership
+        if not user_id:
+            return lambda_response(400, {'error': 'user_id is required'})
+        
+        # Upload file to S3 if file_base64 is provided
+        document_url = None
+        if file_base64:
+            s3_key = upload_to_s3(file_base64, filename)
+            document_url = get_s3_url(s3_key)
         
         # Parse fields from OCR text
         parsed_fields = parse_fields(ocr_text)
@@ -132,27 +166,27 @@ def classify_handler(event, context):
         
         # Database operations in transaction
         with get_db_cursor() as cur:
-            # Insert document
+            # Insert document with the authenticated user_id
             document_id = insert_document(
-                cur, ORG_ID, filename, document_url, 'receipt'
+                cur, org_id, filename, document_url, 'receipt', user_id
             )
             
             # Upsert vendor
-            vendor_id = upsert_vendor(cur, ORG_ID, vendor_name) if vendor_name != 'Unknown Vendor' else None
+            vendor_id = upsert_vendor(cur, org_id, vendor_name) if vendor_name != 'Unknown Vendor' else None
             
             # Insert OCR result
             ocr_result_id = insert_ocr_result(
-                cur, ORG_ID, document_id, vendor_id, 
+                cur, org_id, document_id, vendor_id, 
                 clean_text_for_db(ocr_text), total_amount, currency,
-                invoice_date, invoice_number
+                invoice_date, invoice_number, user_id
             )
             
             # Get or create category
-            category_id = get_or_create_category(cur, ORG_ID, category_name)
+            category_id = get_or_create_category(cur, org_id, category_name)
             
             # Insert transaction
             transaction_id = insert_transaction(
-                cur, ORG_ID, document_id, ocr_result_id, vendor_id, 
+                cur, org_id, ocr_result_id, vendor_id, 
                 None, category_id, vendor_name, total_amount, currency, 
                 invoice_date, 'expense'
             )
@@ -639,3 +673,162 @@ def generate_forecast(historical_data: List[Dict]) -> List[Dict]:
         })
     
     return forecast_series
+
+# ===============================
+# AUTHENTICATION HANDLERS
+# ===============================
+
+def login_handler(event, context):
+    """POST /login - User authentication"""
+    try:
+        # Parse request body
+        if event.get('isBase64Encoded', False):
+            body = base64.b64decode(event['body']).decode('utf-8')
+        else:
+            body = event['body']
+        
+        request_data = json.loads(body)
+        email = request_data.get('email', '').strip().lower()
+        password = request_data.get('password', '')
+        
+        if not email or not password:
+            return lambda_response(400, {'error': 'Email and password are required'})
+        
+        # Check user credentials
+        with get_db_cursor() as cur:
+            cur.execute("""
+                SELECT id, name, email, organization_id, password 
+                FROM users 
+                WHERE email = %s
+            """, (email,))
+            
+            user = cur.fetchone()
+            if not user:
+                return lambda_response(401, {'error': 'Invalid credentials'})
+            
+            # Verify password using bcrypt
+            if not verify_password(password, user['password']):
+                return lambda_response(401, {'error': 'Invalid credentials'})
+            
+            # Create session token (simple approach)
+            session_data = {
+                'user_id': user['id'],
+                'email': user['email'],
+                'name': user['name'],
+                'organization_id': user['organization_id'],
+                'exp': int((datetime.now() + timedelta(days=7)).timestamp())
+            }
+            
+            return lambda_response(200, {
+                'message': 'Login successful',
+                'user': {
+                    'id': user['id'],
+                    'name': user['name'],
+                    'email': user['email'],
+                    'organization_id': user['organization_id']
+                },
+                'session': session_data
+            })
+            
+    except Exception as e:
+        logger.error(f"Login error: {str(e)}")
+        return lambda_response(500, {'error': 'Login failed'})
+
+def register_handler(event, context):
+    """POST /register - User registration"""
+    try:
+        # Parse request body
+        if event.get('isBase64Encoded', False):
+            body = base64.b64decode(event['body']).decode('utf-8')
+        else:
+            body = event['body']
+        
+        request_data = json.loads(body)
+        name = request_data.get('name', '').strip()
+        email = request_data.get('email', '').strip().lower()
+        password = request_data.get('password', '')
+        organization_name = request_data.get('organization', '').strip()
+        
+        if not all([name, email, password]):
+            return lambda_response(400, {'error': 'Name, email, and password are required'})
+        
+        with get_db_cursor() as cur:
+            # Check if user already exists
+            cur.execute("SELECT id FROM users WHERE email = %s", (email,))
+            if cur.fetchone():
+                return lambda_response(400, {'error': 'User already exists'})
+            
+            # Create organization if provided
+            org_id = ORG_ID  # Default org
+            if organization_name:
+                org_id = str(uuid.uuid4())
+                cur.execute("""
+                    INSERT INTO organizations (id, name, created_at, updated_at)
+                    VALUES (%s, %s, NOW(), NOW())
+                """, (org_id, organization_name))
+            
+            # Create user with hashed password
+            user_id = str(uuid.uuid4())
+            hashed_password = hash_password(password)
+            cur.execute("""
+                INSERT INTO users (id, name, email, organization_id, password, created_at, updated_at)
+                VALUES (%s, %s, %s, %s, %s, NOW(), NOW())
+            """, (user_id, name, email, org_id, hashed_password))
+            
+            return lambda_response(201, {
+                'message': 'Registration successful',
+                'user': {
+                    'id': user_id,
+                    'name': name,
+                    'email': email,
+                    'organization_id': org_id
+                }
+            })
+            
+    except Exception as e:
+        logger.error(f"Registration error: {str(e)}")
+        return lambda_response(500, {'error': 'Registration failed'})
+
+def auth_current_handler(event, context):
+    """GET /auth/current - Get current user from session"""
+    try:
+        # Check for session data in headers (from Authorization header)
+        session_data = None
+        headers = event.get('headers', {})
+        
+        # Check Authorization header
+        auth_header = headers.get('Authorization') or headers.get('authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            session_str = auth_header[7:]  # Remove 'Bearer ' prefix
+            try:
+                session_data = json.loads(session_str)
+            except:
+                pass
+        
+        # Fallback: Check query parameters
+        if not session_data and event.get('queryStringParameters') and event['queryStringParameters'].get('session'):
+            session_str = event['queryStringParameters']['session']
+            try:
+                session_data = json.loads(session_str)
+            except:
+                pass
+        
+        if not session_data:
+            return lambda_response(401, {'error': 'Not authenticated'})
+        
+        # Verify session hasn't expired
+        if session_data.get('exp', 0) < datetime.now().timestamp():
+            return lambda_response(401, {'error': 'Session expired'})
+        
+        return lambda_response(200, {
+            'user': {
+                'id': session_data['user_id'],
+                'name': session_data.get('name', ''),
+                'email': session_data.get('email', ''),
+                'organization_id': session_data.get('organization_id', '')
+            }
+        })
+        
+    except Exception as e:
+        logger.error(f"Auth current error: {str(e)}")
+        return lambda_response(401, {'error': 'Authentication failed'})

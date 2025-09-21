@@ -9,25 +9,23 @@ class APIConfig {
             summary: '/summary',
             reportMonthly: '/report/monthly',
             forecast: '/forecast',
-            insights: '/insights'
+            insights: '/insights',
+            // AI Chat endpoints
+            aiChat: '/ai/chat',
+            taxAdvisor: '/ai/tax-advisor',
+            financialAdvisor: '/ai/financial-advisor',
+            budgetRecommendations: '/ai/budget-recommendations',
+            // Authentication endpoints
+            login: '/login',
+            register: '/register',
+            authCurrent: '/auth/current'
         };
     }
 
     getBaseURL() {
-        // Check if we're in production (deployed to S3/CloudFront)
-        if (window.location.hostname.includes('amazonaws.com') || 
-            window.location.hostname.includes('cloudfront.net')) {
-            // Updated with your actual API Gateway URL
-            return 'https://xfnv4mgb64.execute-api.ap-southeast-1.amazonaws.com/prod';
-        }
-        
-        // For local development with the FastAPI backend
-        if (window.location.hostname === 'localhost' || 
-            window.location.hostname === '127.0.0.1') {
-            return 'http://localhost:8000';
-        }
-        
-        // Updated with your actual API Gateway URL
+        // Always use the deployed Lambda functions for API calls
+        // The Node.js server (localhost:5000) handles authentication
+        // The Lambda functions handle data processing
         return 'https://xfnv4mgb64.execute-api.ap-southeast-1.amazonaws.com/prod';
     }
 
@@ -64,6 +62,35 @@ class APIConfig {
     updateBaseURL(newBaseURL) {
         this.baseURL = newBaseURL;
         console.log('API base URL updated to:', newBaseURL);
+    }
+
+    // AI-specific API methods
+    async post(endpoint, data) {
+        return this.apiCall(endpoint, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    }
+
+    async get(endpoint, params = {}) {
+        const url = new URL(this.getEndpoint(endpoint));
+        Object.keys(params).forEach(key => {
+            if (params[key] !== undefined && params[key] !== null) {
+                url.searchParams.append(key, params[key]);
+            }
+        });
+        
+        return fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+            }
+            return response.json();
+        });
     }
 }
 

@@ -426,6 +426,84 @@ Resources:
             Method: post
     Metadata:
       SamResourceId: AiChatFunction
+  LoginFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: LoginFunction
+      Handler: handlers.login_handler
+      Layers:
+      - Ref: PsycopgLayer
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+      Events:
+        LoginApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGateway
+            Path: /login
+            Method: post
+    Metadata:
+      SamResourceId: LoginFunction
+  RegisterFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: RegisterFunction
+      Handler: handlers.register_handler
+      Layers:
+      - Ref: PsycopgLayer
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+      Events:
+        RegisterApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGateway
+            Path: /register
+            Method: post
+    Metadata:
+      SamResourceId: RegisterFunction
+  AuthCurrentFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: AuthCurrentFunction
+      Handler: handlers.auth_current_handler
+      Layers:
+      - Ref: PsycopgLayer
+      Policies:
+      - Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action:
+          - logs:CreateLogGroup
+          - logs:CreateLogStream
+          - logs:PutLogEvents
+          Resource: '*'
+      Events:
+        AuthCurrentApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: ApiGateway
+            Path: /auth/current
+            Method: get
+    Metadata:
+      SamResourceId: AuthCurrentFunction
   PsycopgLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:

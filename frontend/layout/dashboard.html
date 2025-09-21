@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+        <title>Hackybara Accounting</title>
+        <link rel="icon" href="../icon/icon.png" type="image/x-icon">
+        <script src="../js/config.js"></script>
+        <script src="../js/script.js" defer></script>
+        <script src="../js/dashboard.js" defer></script>
+        <script>
+            // JavaScript functions
+            function openNav() {
+                document.getElementById("mySidenav").classList.remove("hidden");
+                document.getElementById("mySidenav").classList.add("block");
+            }
+            
+            function closeNav() {
+                document.getElementById("mySidenav").classList.remove("block");
+                document.getElementById("mySidenav").classList.add("hidden");
+            }
+            
+            function logout() {
+                alert("Logout functionality would go here");
+            }
+        </script>
+        <style>
+            .material-symbols-outlined {
+                font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+            }
+            
+            /* Circular progress bars */
+            .progress svg {
+                width: 80px;
+                height: 80px;
+                transform: rotate(-90deg);
+            }
+            
+            .progress circle {
+                fill: none;
+                stroke-width: 8;
+                stroke-linecap: round;
+            }
+            
+            .sales circle {
+                stroke: var(--color-primary);
+                stroke-dashoffset: 75;
+                stroke-dasharray: 226;
+            }
+            
+            .expenses circle {
+                stroke: var(--color-danger);
+                stroke-dashoffset: 75;
+                stroke-dasharray: 226;
+            }
+            
+            .income circle {
+                stroke: var(--color-success);
+                stroke-dashoffset: 75;
+                stroke-dasharray: 226;
+            }
+            
+            :root {
+                --color-primary: #7380ec;
+                --color-danger: #ff7782;
+                --color-success: #41f1b6;
+            }
+        </style>
+    </head>
+    <body class="bg-gray-100">
+        <!--NAVIGATION BAR-->
+        <div id="navbar"></div>
+        
+        <div class="container flex mt-20">
+            <!--ASIDE SECTION START-->
+            <div id="sidebar"></div>
+            <!--ASIDE SECTION END-->
+
+            <!--MAIN SECTION START-->
+            <main class="flex-1 md:ml-64 p-6">
+                <div class="titledate flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Dashboard</h1>
+                    <div class="date">
+                        <input type="date" class="p-2 border border-gray-300 rounded">
+                    </div>
+                </div>
+
+                <!--START INSIGHTS-->
+                <div class="insights grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <!--Start Selling-->
+                    <div class="sales bg-white p-6 rounded-lg shadow-sm flex justify-between items-center">
+                        <span class="material-symbols-outlined text-blue-500 bg-blue-100 p-3 rounded-lg">trending_up</span>
+                        <div class="middle flex justify-between items-center flex-1 ml-4">
+                            <div class="left">
+                                <h3 class="text-gray-500">Total Sales</h3>
+                                <h1 class="text-2xl font-bold">RM52,474</h1>
+                            </div>
+                            <div class="progress relative w-20 h-20">
+                                <svg>
+                                    <circle r="30" cy="40" cx="40"></circle>
+                                </svg>
+                                <div class="number absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-sm font-bold">80%</div>
+                            </div>
+                        </div>
+                        <small class="block mt-2 text-sm text-gray-500 w-full">Last 24 Hours</small>
+                    </div>
+                    <!--End Selling-->
+
+                    <!--Start Expenses-->
+                    <div class="expenses bg-white p-6 rounded-lg shadow-sm flex justify-between items-center">
+                        <span class="material-symbols-outlined text-red-500 bg-red-100 p-3 rounded-lg">local_mall</span>
+                        <div class="middle flex justify-between items-center flex-1 ml-4">
+                            <div class="left">
+                                <h3 class="text-gray-500">Expenses</h3>
+                                <h1 class="text-2xl font-bold">RM52,474</h1>
+                            </div>
+                            <div class="progress relative w-20 h-20">
+                                <svg>
+                                    <circle r="30" cy="40" cx="40"></circle>
+                                </svg>
+                                <div class="number absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-sm font-bold">80%</div>
+                            </div>
+                        </div>
+                        <small class="block mt-2 text-sm text-gray-500 w-full">Last 24 Hours</small>
+                    </div>
+                    <!--End Expenses-->
+
+                    <!--Start Income-->
+                    <div class="income bg-white p-6 rounded-lg shadow-sm flex justify-between items-center">
+                        <span class="material-symbols-outlined text-green-500 bg-green-100 p-3 rounded-lg">stacked_line_chart</span>
+                        <div class="middle flex justify-between items-center flex-1 ml-4">
+                            <div class="left">
+                                <h3 class="text-gray-500">Income</h3>
+                                <h1 class="text-2xl font-bold">RM52,474</h1>
+                            </div>
+                            <div class="progress relative w-20 h-20">
+                                <svg>
+                                    <circle r="30" cy="40" cx="40"></circle>
+                                </svg>
+                                <div class="number absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-sm font-bold">80%</div>
+                            </div>
+                        </div>
+                        <small class="block mt-2 text-sm text-gray-500 w-full">Last 24 Hours</small>
+                    </div>
+                    <!--End Income-->
+                </div>
+                <!--END INSIGHTS-->
+
+                <!--START RECENT ORDER-->
+                <div class="recent_order bg-white p-6 rounded-lg shadow-sm">
+                    <h1 class="text-xl font-bold mb-4">Recent Orders</h1>
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left pb-2">Order ID</th>
+                                <th class="text-left pb-2">Product Name</th>
+                                <th class="text-left pb-2">Payment</th>
+                                <th class="text-left pb-2">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-gray-200">
+                                <td class="py-3">OD-12345</td>
+                                <td class="py-3">Doodle Edition</td>
+                                <td class="py-3 text-yellow-600">Pending</td>
+                                <td class="py-3 text-blue-600">Pending</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!--END RECENT ORDER-->
+            </main>
+            <!--MAIN SECTION END--> 
+        </div>
+    </body>
+    <script>
+        // Sidebar and navbar includes via JS
+        function loadInclude(id, file) {
+            fetch(file)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById(id).innerHTML = html;
+                });
+        }
+        loadInclude('navbar', '../layout/navbar.html');
+        loadInclude('sidebar', '../layout/sidebar.html');
+        loadInclude('sidebar-mobile', '../layout/sidebar_mobile.html');
+    </script>
+</html>

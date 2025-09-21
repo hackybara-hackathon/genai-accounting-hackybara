@@ -167,23 +167,23 @@
                 
                 // API Functions
                 async function getTaxAdvice(query) {
-                    const response = await apiConfig.post('/ai/tax-advisor', { query });
+                    const response = await apiConfig.post('taxAdvisor', { query });
                     return response.advice;
                 }
                 
                 async function getFinancialAdvice(query) {
-                    const response = await apiConfig.post('/ai/financial-advisor', { query });
+                    const response = await apiConfig.post('financialAdvisor', { query });
                     return response.advice;
                 }
                 
                 async function getBudgetRecommendations(message) {
                     const goals = message; // User message becomes their goals
-                    const response = await apiConfig.post('/ai/budget-recommendations', { goals });
+                    const response = await apiConfig.post('budgetRecommendations', { goals });
                     return response.recommendations;
                 }
                 
                 async function getGeneralChat(message) {
-                    const response = await apiConfig.post('/ai/chat', { 
+                    const response = await apiConfig.post('aiChat', { 
                         message, 
                         context: conversationContext 
                     });

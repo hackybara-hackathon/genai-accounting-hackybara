@@ -1,15 +1,4 @@
 // Upload functionality for receipt processing
-// Session check for upload page
-fetch('/api/auth/current', { credentials: 'include' })
-    .then(res => res.json())
-    .then(data => {
-        if (!data.user) {
-            window.location.href = 'login.html';
-        }
-    })
-    .catch(() => {
-        window.location.href = 'login.html';
-    });
 let selectedFile = null;
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -134,6 +123,15 @@ async function processReceipt() {
     document.getElementById('errorContainer').innerHTML = '';
 
     try {
+        // Get current user information from localStorage
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) {
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        const userData = JSON.parse(currentUser);
+
         let fileBase64 = '';
         let filename = 'receipt.txt';
 
@@ -143,11 +141,13 @@ async function processReceipt() {
             filename = selectedFile.name;
         }
 
-        // Prepare request data
+        // Prepare request data with user information
         const requestData = {
             file_base64: fileBase64,
             filename: filename,
-            ocr_text: ocrText || 'Manual text input'
+            ocr_text: ocrText || 'Manual text input',
+            user_id: userData.id,
+            organization_id: userData.organization_id
         };
 
         // Call the classify API

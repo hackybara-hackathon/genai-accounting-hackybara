@@ -1,26 +1,41 @@
 //REGISTER NEW USER
-const signupForm = document.getElementById("signupForm");
-signupForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
+document.addEventListener('DOMContentLoaded', function() {
+    const signupForm = document.getElementById("signupForm");
+    signupForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
 
-  const businessName = document.getElementById('businessName').value;
-  const userName = document.getElementById('userName').value;
-  const email = document.getElementById('signupEmail').value;
-  const password = document.getElementById('signupPassword').value;
-  const confirmPassword = document.getElementById('confirmPassword').value;
+        const businessName = document.getElementById('businessName').value;
+        const userName = document.getElementById('userName').value;
+        const email = document.getElementById('signupEmail').value;
+        const password = document.getElementById('signupPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
 
-  const response = await fetch('/api/register', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ businessName, userName, email, password, confirmPassword })
-  });
+        if (password !== confirmPassword) {
+            alert('Passwords do not match');
+            return;
+        }
 
-  const data = await response.json();
-  if (response.ok) {
-    alert(data.message);
-    signupForm.reset();
-    window.location.href = 'login.html';
-  } else {
-    alert(data.error);
-  }
+        try {
+            const data = await API.apiCall('register', {
+                method: 'POST',
+                body: JSON.stringify({ 
+                    name: userName,
+                    organization: businessName, 
+                    email, 
+                    password
+                })
+            });
+
+            if (data.success) {
+                alert(data.message || 'Registration successful!');
+                signupForm.reset();
+                window.location.href = 'login.html';
+            } else {
+                throw new Error(data.error || 'Registration failed');
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            alert('Registration failed: ' + error.message);
+        }
+    });
 });

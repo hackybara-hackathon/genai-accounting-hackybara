@@ -39,8 +39,26 @@ app.use('/api/logout', logoutRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/settings', settingRoutes);
 
-// Serve frontend
-app.use(express.static(path.join(__dirname, 'frontend')));
+// Serve static files from layout directory as root
+app.use(express.static(path.join(__dirname, 'frontend', 'layout')));
+
+// Serve JS and CSS from frontend root
+app.use('/js', express.static(path.join(__dirname, 'frontend', 'js')));
+app.use('/css', express.static(path.join(__dirname, 'frontend', 'css')));
+
+// Root route - serve the main page
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'layout', 'index.html'));
+});
+
+// Serve specific HTML components that are being requested
+app.get('/navbar.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'layout', 'navbar.html'));
+});
+
+app.get('/sidebar.html', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'layout', 'sidebar.html'));
+});
 
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
