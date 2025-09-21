@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
-    <script src="../js/aichat.js" defer></script>
         <meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -9,8 +8,9 @@
         <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
         <title>Hackybara Accounting - AI Chat</title>
         <link rel="icon" href="../icon/icon.png" type="image/x-icon">
-        <script src="../js/script.js" defer></script>
-        <script src="../js/config.js"></script>
+        <script src="/js/script.js" defer></script>
+        <script src="/js/config.js"></script>
+        <script src="/js/aichat.js" defer></script>
         <script>
             // JavaScript functions
             function openNav() {
@@ -410,13 +410,14 @@
                         <form id="chatForm" class="flex items-center space-x-2">
                             <input 
                                 type="text" 
-                                id="userInput" 
+                                id="chatInput" 
                                 placeholder="Ask something about your accounting..." 
                                 class="flex-1 border border-gray-300 rounded-full py-2 px-4 focus:ring-blue-500 focus:border-blue-500"
                                 autocomplete="off"
                             >
                             <button 
                                 type="submit" 
+                                id="sendButton"
                                 class="bg-blue-600 text-white rounded-full p-2 hover:bg-blue-700 transition-colors"
                             >
                                 <span class="material-symbols-outlined">send</span>
@@ -445,7 +446,7 @@
                     document.getElementById(id).innerHTML = html;
                 });
         }
-        loadInclude('navbar', './navbar.html');l
+        loadInclude('navbar', './navbar.html');
         loadInclude('sidebar', './sidebar.html');
         loadInclude('sidebar-mobile', './sidebar_mobile.html');
     </script>
