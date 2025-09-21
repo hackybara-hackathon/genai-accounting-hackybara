@@ -1,0 +1,42 @@
+<!-- Sidebar Component for Hackybara Accounting (Desktop Version)
+     Place this file in frontend/layout/sidebar.html and use with server-side includes or client-side fetch/insert. -->
+
+<aside class="w-64 fixed left-0 top-20 h-screen bg-white shadow-md hidden md:block">
+    <div class="top p-6 border-b border-gray-200">
+        <h4 class="font-bold text-gray-700"><span id="organizationName">Acme Corporation</span></h4>
+    </div>
+    <div class="sidebar p-4">
+        <a href="index.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+            <span class="material-symbols-outlined mr-3">dashboard</span>
+            <h3>Dashboard</h3>
+        </a>
+        <a href="transactions.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+            <span class="material-symbols-outlined mr-3">contract</span>
+            <h3>Transaction</h3>
+        </a>
+        <a href="upload.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+            <span class="material-symbols-outlined mr-3">upload</span>
+            <h3>Upload Receipt</h3>
+        </a>
+        <a href="report.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+            <span class="material-symbols-outlined mr-3">description</span>
+            <h3>Report</h3>
+        </a>
+        <a href="cf_forecast.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+            <span class="material-symbols-outlined mr-3">payments</span>
+            <h3>Cash Flow Forecast</h3>
+        </a>
+        <a href="aichat.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+            <span class="material-symbols-outlined mr-3">robot_2</span>
+            <h3>AI Chat</h3>
+        </a>
+        <a href="settings.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+            <span class="material-symbols-outlined mr-3">settings</span>
+            <h3>Settings</h3>
+        </a>
+        <a href="javascript:void(0)" onclick="logout()" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-blue-100 mb-2">
+            <span class="material-symbols-outlined mr-3">logout</span>
+            <h3>Logout</h3>
+        </a>
+    </div>
+</aside>
