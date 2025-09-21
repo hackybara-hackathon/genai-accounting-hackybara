@@ -366,6 +366,222 @@ def insights_handler(event, context):
         logger.error(f"Insights handler error: {str(e)}", exc_info=True)
         return lambda_response(500, {'error': 'Internal server error'})
 
+def tax_advisor_handler(event, context):
+    """POST /ai/tax-advisor - AI Tax Preparation Assistant"""
+    request_id = context.aws_request_id
+    logger.info(f"Request ID: {request_id}, Tax Advisor Query")
+    
+    try:
+        # Parse request body
+        if event.get('isBase64Encoded', False):
+            body = base64.b64decode(event['body']).decode('utf-8')
+        else:
+            body = event['body']
+        
+        request_data = json.loads(body)
+        user_query = request_data.get('query', '')
+        
+        if not user_query:
+            return lambda_response(400, {'error': 'Query is required'})
+        
+        # Get user's financial context
+        transaction_data = None
+        with get_db_cursor() as cur:
+            try:
+                summary_data = get_summary_data(cur, ORG_ID)
+                transaction_data = {
+                    'total_expenses': summary_data['kpis']['total_spent_90d'],
+                    'business_expenses': sum(cat['amount'] for cat in summary_data['by_category_90d'] 
+                                           if cat['category'] in ['Business Expenses', 'Office Supplies', 'Professional Services']),
+                    'receipt_count': summary_data['kpis']['documents_90d'],
+                    'top_categories': [cat['category'] for cat in summary_data['by_category_90d'][:5]]
+                }
+            except Exception as e:
+                logger.warning(f"Could not get transaction data: {str(e)}")
+        
+        # Get AI advice
+        advice = bedrock_client.tax_preparation_advisor(user_query, transaction_data)
+        
+        return lambda_response(200, {
+            'query': user_query,
+            'advice': advice,
+            'context_included': transaction_data is not None
+        })
+        
+    except Exception as e:
+        logger.error(f"Tax advisor handler error: {str(e)}", exc_info=True)
+        return lambda_response(500, {'error': 'Internal server error'})
+
+def financial_advisor_handler(event, context):
+    """POST /ai/financial-advisor - AI Financial Planning Assistant"""
+    request_id = context.aws_request_id
+    logger.info(f"Request ID: {request_id}, Financial Advisor Query")
+    
+    try:
+        # Parse request body
+        if event.get('isBase64Encoded', False):
+            body = base64.b64decode(event['body']).decode('utf-8')
+        else:
+            body = event['body']
+        
+        request_data = json.loads(body)
+        user_query = request_data.get('query', '')
+        
+        if not user_query:
+            return lambda_response(400, {'error': 'Query is required'})
+        
+        # Get user's financial summary
+        financial_summary = None
+        with get_db_cursor() as cur:
+            try:
+                summary_data = get_summary_data(cur, ORG_ID)
+                
+                # Calculate monthly average
+                monthly_avg = summary_data['kpis']['total_spent_90d'] / 3  # 90 days = ~3 months
+                
+                # Get trend from recent vs older spending
+                cur.execute("""
+                    SELECT 
+                        SUM(CASE WHEN COALESCE(invoice_date, created_at::date) >= CURRENT_DATE - INTERVAL '30 days' THEN amount ELSE 0 END) as recent_30d,
+                        SUM(CASE WHEN COALESCE(invoice_date, created_at::date) BETWEEN CURRENT_DATE - INTERVAL '60 days' AND CURRENT_DATE - INTERVAL '30 days' THEN amount ELSE 0 END) as previous_30d
+                    FROM transactions 
+                    WHERE organization_id = %s AND type = 'expense'
+                """, (ORG_ID,))
+                
+                trend_data = cur.fetchone()
+                recent_30d = float(trend_data['recent_30d']) if trend_data['recent_30d'] else 0
+                previous_30d = float(trend_data['previous_30d']) if trend_data['previous_30d'] else 0
+                
+                if previous_30d > 0:
+                    trend = "Increasing" if recent_30d > previous_30d else "Decreasing" if recent_30d < previous_30d else "Stable"
+                else:
+                    trend = "Unknown"
+                
+                financial_summary = {
+                    'monthly_avg': monthly_avg,
+                    'trend': trend,
+                    'top_categories': [cat['category'] for cat in summary_data['by_category_90d'][:3]],
+                    'variance': 'High' if abs(recent_30d - previous_30d) > previous_30d * 0.2 else 'Stable',
+                    'recent_count': summary_data['kpis']['documents_30d']
+                }
+            except Exception as e:
+                logger.warning(f"Could not get financial summary: {str(e)}")
+        
+        # Get AI advice
+        advice = bedrock_client.financial_advisor(user_query, financial_summary)
+        
+        return lambda_response(200, {
+            'query': user_query,
+            'advice': advice,
+            'financial_context': financial_summary
+        })
+        
+    except Exception as e:
+        logger.error(f"Financial advisor handler error: {str(e)}", exc_info=True)
+        return lambda_response(500, {'error': 'Internal server error'})
+
+def budget_recommendations_handler(event, context):
+    """POST /ai/budget-recommendations - AI Budget Planning Assistant"""
+    request_id = context.aws_request_id
+    logger.info(f"Request ID: {request_id}, Budget Recommendations Query")
+    
+    try:
+        # Parse request body
+        request_data = {}
+        if event.get('body'):
+            try:
+                if event.get('isBase64Encoded', False):
+                    body = base64.b64decode(event['body']).decode('utf-8')
+                else:
+                    body = event['body']
+                request_data = json.loads(body)
+            except json.JSONDecodeError:
+                pass
+        
+        user_goals = request_data.get('goals', '')
+        
+        # Get spending data
+        with get_db_cursor() as cur:
+            summary_data = get_summary_data(cur, ORG_ID)
+            
+            # Calculate monthly trend
+            cur.execute("""
+                SELECT 
+                    SUM(CASE WHEN COALESCE(invoice_date, created_at::date) >= CURRENT_DATE - INTERVAL '30 days' THEN amount ELSE 0 END) as recent_30d,
+                    SUM(CASE WHEN COALESCE(invoice_date, created_at::date) BETWEEN CURRENT_DATE - INTERVAL '60 days' AND CURRENT_DATE - INTERVAL '30 days' THEN amount ELSE 0 END) as previous_30d
+                FROM transactions 
+                WHERE organization_id = %s AND type = 'expense'
+            """, (ORG_ID,))
+            
+            trend_data = cur.fetchone()
+            recent_30d = float(trend_data['recent_30d']) if trend_data['recent_30d'] else 0
+            previous_30d = float(trend_data['previous_30d']) if trend_data['previous_30d'] else 0
+            
+            if previous_30d > 0:
+                trend = "increasing" if recent_30d > previous_30d else "decreasing" if recent_30d < previous_30d else "stable"
+            else:
+                trend = "stable"
+            
+            # Prepare spending data
+            categories = {}
+            for cat in summary_data['by_category_90d']:
+                categories[cat['category']] = cat['amount'] / 3  # Convert to monthly average
+            
+            spending_data = {
+                'total_spending': sum(categories.values()),
+                'categories': categories,
+                'monthly_trend': trend
+            }
+        
+        # Get AI recommendations
+        recommendations = bedrock_client.budget_recommendations(spending_data, user_goals)
+        
+        return lambda_response(200, {
+            'recommendations': recommendations,
+            'current_spending': spending_data,
+            'goals': user_goals
+        })
+        
+    except Exception as e:
+        logger.error(f"Budget recommendations handler error: {str(e)}", exc_info=True)
+        return lambda_response(500, {'error': 'Internal server error'})
+
+def ai_chat_handler(event, context):
+    """POST /ai/chat - General AI Assistant for accounting and finance"""
+    request_id = context.aws_request_id
+    logger.info(f"Request ID: {request_id}, AI Chat Query")
+    
+    try:
+        # Parse request body
+        if event.get('isBase64Encoded', False):
+            body = base64.b64decode(event['body']).decode('utf-8')
+        else:
+            body = event['body']
+        
+        request_data = json.loads(body)
+        user_message = request_data.get('message', '')
+        conversation_context = request_data.get('context', [])
+        
+        if not user_message:
+            return lambda_response(400, {'error': 'Message is required'})
+        
+        # Limit conversation context to prevent token overflow
+        if len(conversation_context) > 5:
+            conversation_context = conversation_context[-5:]
+        
+        # Get AI response
+        response = bedrock_client.general_ai_chat(user_message, conversation_context)
+        
+        return lambda_response(200, {
+            'message': user_message,
+            'response': response,
+            'timestamp': datetime.now().isoformat()
+        })
+        
+    except Exception as e:
+        logger.error(f"AI chat handler error: {str(e)}", exc_info=True)
+        return lambda_response(500, {'error': 'Internal server error'})
+
 def generate_forecast(historical_data: List[Dict]) -> List[Dict]:
     """
     Simple forecasting using moving average with trend adjustment

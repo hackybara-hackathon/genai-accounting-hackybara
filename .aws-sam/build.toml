@@ -7,7 +7,7 @@ architecture = "x86_64"
 handler = "handlers.classify_handler"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["ClassifyFunction", "TransactionsFunction", "SummaryFunction", "ReportMonthlyFunction", "ForecastFunction", "InsightsFunction"]
+functions = ["ClassifyFunction", "TransactionsFunction", "SummaryFunction", "ReportMonthlyFunction", "ForecastFunction", "InsightsFunction", "TaxAdvisorFunction", "FinancialAdvisorFunction", "BudgetRecommendationsFunction", "AiChatFunction"]
 
 [layer_build_definitions.ffb444e5-134d-441b-9521-98ac71870ff5]
 layer_name = "PsycopgLayer"
