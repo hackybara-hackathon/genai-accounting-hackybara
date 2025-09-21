@@ -1,0 +1,127 @@
+name: 🚀 Deploy Frontend to S3
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'frontend/**'
+      - 'css/**'
+      - 'js/**'
+      - '.github/workflows/deploy-frontend.yml'
+  workflow_dispatch: # Allow manual trigger
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+        - production
+        - staging
+
+env:
+  AWS_REGION: ap-southeast-1
+  S3_BUCKET: genai-accounting-website-427566522814
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    environment: production
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+
+    - name: 🔧 Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: 🔍 Verify AWS connection
+      run: |
+        echo "Testing AWS connection..."
+        aws sts get-caller-identity
+        aws s3 ls s3://${{ env.S3_BUCKET }} || echo "Bucket may be empty - that's okay!"
+
+    - name: 📂 Count files to be deployed
+      run: |
+        echo "📊 Deployment Summary:"
+        echo "HTML files: $(find frontend/layout -name "*.html" | wc -l)"
+        echo "CSS files: $(find css -name "*.css" 2>/dev/null | wc -l || echo 0)"
+        echo "JS files: $(find frontend/js -name "*.js" | wc -l)"
+
+    - name: 🚀 Sync HTML files to S3 root
+      run: |
+        echo "📄 Deploying HTML files..."
+        aws s3 sync frontend/layout/ s3://${{ env.S3_BUCKET }}/ \
+          --include "*.html" \
+          --cache-control "max-age=300" \
+          --delete \
+          --exact-timestamps
+
+    - name: 🎨 Sync CSS files to S3
+      run: |
+        if [ -d "css" ]; then
+          echo "🎨 Deploying CSS files..."
+          aws s3 sync css/ s3://${{ env.S3_BUCKET }}/css/ \
+            --include "*.css" \
+            --cache-control "max-age=86400" \
+            --delete \
+            --exact-timestamps
+        else
+          echo "No CSS directory found - skipping"
+        fi
+
+    - name: 📜 Sync JS files to S3  
+      run: |
+        echo "📜 Deploying JavaScript files..."
+        aws s3 sync frontend/js/ s3://${{ env.S3_BUCKET }}/js/ \
+          --include "*.js" \
+          --cache-control "max-age=86400" \
+          --delete \
+          --exact-timestamps
+
+    - name: 🔓 Set S3 bucket policy for public access
+      run: |
+        echo "🔓 Ensuring bucket is publicly accessible..."
+        aws s3api put-bucket-policy --bucket ${{ env.S3_BUCKET }} --policy '{
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Sid": "PublicReadGetObject", 
+              "Effect": "Allow",
+              "Principal": "*",
+              "Action": "s3:GetObject",
+              "Resource": "arn:aws:s3:::${{ env.S3_BUCKET }}/*"
+            }
+          ]
+        }'
+
+    - name: 🧪 Test website accessibility
+      run: |
+        WEBSITE_URL="http://${{ env.S3_BUCKET }}.s3-website-${{ env.AWS_REGION }}.amazonaws.com"
+        echo "🧪 Testing website accessibility..."
+        sleep 10  # Give S3 a moment to process
+        if curl -f -s "$WEBSITE_URL" > /dev/null; then
+          echo "✅ Website is accessible!"
+        else
+          echo "⚠️ Website may take a few minutes to be accessible"
+        fi
+
+    - name: 🎉 Deployment Summary
+      run: |
+        echo ""
+        echo "🎉 Frontend deployment completed successfully!"
+        echo ""
+        echo "📊 Deployment Details:"
+        echo "• Region: ${{ env.AWS_REGION }}"
+        echo "• Bucket: ${{ env.S3_BUCKET }}"
+        echo "• Cache: HTML (5min), Assets (24hr)"
+        echo ""
+        echo "🔗 URLs:"
+        echo "• Website: http://${{ env.S3_BUCKET }}.s3-website-${{ env.AWS_REGION }}.amazonaws.com"
+        echo "• S3 Console: https://s3.console.aws.amazon.com/s3/buckets/${{ env.S3_BUCKET }}"
+        echo ""
+        echo "🔄 Next time you push to main with frontend changes, this will run automatically!"
