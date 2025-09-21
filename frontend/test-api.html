@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Connection Test</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testInitDB()">Test Init DB</button>
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'https://xfnv4mgb64.execute-api.ap-southeast-1.amazonaws.com/prod';
+        
+        async function testLogin() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Testing login...</p>';
+            
+            try {
+                const response = await fetch(API_BASE + '/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'demo@example.com',
+                        password: 'password123'
+                    })
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                results.innerHTML = `
+                    <h3>Login Test Results:</h3>
+                    <p>Status: ${response.status}</p>
+                    <p>Status Text: ${response.statusText}</p>
+                    <p>Response: ${text}</p>
+                `;
+                
+            } catch (error) {
+                console.error('Login test error:', error);
+                results.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function testInitDB() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<p>Testing init-db...</p>';
+            
+            try {
+                const response = await fetch(API_BASE + '/init-db', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                console.log('Response status:', response.status);
+                const text = await response.text();
+                console.log('Response text:', text);
+                
+                results.innerHTML = `
+                    <h3>Init DB Test Results:</h3>
+                    <p>Status: ${response.status}</p>
+                    <p>Response: ${text}</p>
+                `;
+                
+            } catch (error) {
+                console.error('Init DB test error:', error);
+                results.innerHTML = `<p>Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

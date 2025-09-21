@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <script src="js/report.js" defer></script>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+        <title>Hackybara Accounting</title>
+        <link rel="icon" href="icon/icon.png" type="image/x-icon">
+        <script src="js/script.js" defer></script>
+        <script>
+            // JavaScript functions
+            function openNav() {
+                document.getElementById("mySidenav").classList.remove("hidden");
+                document.getElementById("mySidenav").classList.add("block");
+            }
+            
+            function closeNav() {
+                document.getElementById("mySidenav").classList.remove("block");
+                document.getElementById("mySidenav").classList.add("hidden");
+            }
+            
+            function logout() {
+                alert("Logout functionality would go here");
+            }
+        </script>
+        <style>
+            .material-symbols-outlined {
+                font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 24
+            }
+            
+            /* Circular progress bars */
+            .progress svg {
+                width: 80px;
+                height: 80px;
+                transform: rotate(-90deg);
+            }
+            
+            .progress circle {
+                fill: none;
+                stroke-width: 8;
+                stroke-linecap: round;
+            }
+            
+            .sales circle {
+                stroke: var(--color-primary);
+                stroke-dashoffset: 75;
+                stroke-dasharray: 226;
+            }
+            
+            .expenses circle {
+                stroke: var(--color-danger);
+                stroke-dashoffset: 75;
+                stroke-dasharray: 226;
+            }
+            
+            .income circle {
+                stroke: var(--color-success);
+                stroke-dashoffset: 75;
+                stroke-dasharray: 226;
+            }
+            
+            :root {
+                --color-primary: #7380ec;
+                --color-danger: #ff7782;
+                --color-success: #41f1b6;
+            }
+        </style>
+    </head>
+    <body class="bg-gray-100">
+        <!--NAVIGATION BAR-->
+        <div id="navbar"></div>
+        
+        <div class="container flex mt-20">
+            <!--ASIDE SECTION START-->
+            <div id="sidebar"></div>
+            <!--ASIDE SECTION END-->
+
+            <!--MAIN SECTION START-->
+            <main class="flex-1 md:ml-64 p-6">
+                <div class="titledate flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Report</h1>
+                    <div class="date">
+                        <input type="date" class="p-2 border border-gray-300 rounded">
+                    </div>
+                </div>
+
+                
+
+                <!--START FINANCIAL REPORT SECTION-->
+                <div class="bg-white p-6 rounded-lg shadow-sm mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h1 class="text-xl font-bold">Financial Reports</h1>
+                        <button id="generateReportBtn" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">Generate Report</button>
+                    </div>
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b border-gray-200">
+                                <th class="text-left pb-2">Report ID</th>
+                                <th class="text-left pb-2">File Name</th>
+                                <th class="text-left pb-2">Download</th>
+                                <th class="text-left pb-2">Created At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="reportTableBody">
+                            <tr><td colspan="4">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <!--END FINANCIAL REPORT SECTION-->
+            </main>
+            <!--MAIN SECTION END--> 
+        </div>
+    </body>
+    <script>
+        // Sidebar and navbar includes via JS
+        function loadInclude(id, file) {
+            fetch(file)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById(id).innerHTML = html;
+                });
+        }
+    loadInclude('navbar', './navbar.html');
+    loadInclude('sidebar', './sidebar.html');
+    loadInclude('sidebar-mobile', './sidebar_mobile.html');
+    </script>
+</html>

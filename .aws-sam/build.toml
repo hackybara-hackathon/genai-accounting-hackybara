@@ -5,9 +5,10 @@ codeuri = "C:\\Users\\user\\OneDrive\\Desktop\\genai-accounting-hackybara\\src"
 runtime = "python3.12"
 architecture = "x86_64"
 handler = "handlers.classify_handler"
+source_hash = "41f714101c48c7e8f4d6f2dfb73c070ee2d1bfdaec996447f09dcb7c94ccd54f"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["ClassifyFunction", "TransactionsFunction", "SummaryFunction", "ReportMonthlyFunction", "ForecastFunction", "InsightsFunction", "TaxAdvisorFunction", "FinancialAdvisorFunction", "BudgetRecommendationsFunction", "AiChatFunction", "LoginFunction", "RegisterFunction", "AuthCurrentFunction"]
+functions = ["ClassifyFunction", "TransactionsFunction", "SummaryFunction", "ReportMonthlyFunction", "ForecastFunction", "InsightsFunction", "TaxAdvisorFunction", "FinancialAdvisorFunction", "BudgetRecommendationsFunction", "AiChatFunction", "LoginFunction", "RegisterFunction", "AuthCurrentFunction", "OptionsFunction", "DbInitFunction"]
 
 [layer_build_definitions.ffb444e5-134d-441b-9521-98ac71870ff5]
 layer_name = "PsycopgLayer"
@@ -15,5 +16,6 @@ codeuri = "C:\\Users\\user\\OneDrive\\Desktop\\genai-accounting-hackybara\\layer
 build_method = "python3.12"
 compatible_runtimes = ["python3.12"]
 architecture = "x86_64"
+source_hash = "d7bbb7c6578802d1a92bf3a76c3dc39fd232e0e7e8a82971b14f5aa9f4d470a2"
 manifest_hash = ""
 layer = "PsycopgLayer"

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CORS Test</title>
+</head>
+<body>
+    <h1>Testing CORS</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <button onclick="testSummary()">Test Summary</button>
+    <button onclick="testOptions()">Test OPTIONS</button>
+    <div id="results"></div>
+
+    <script>
+        const API_BASE = 'https://xfnv4mgb64.execute-api.ap-southeast-1.amazonaws.com/prod';
+        
+        async function testLogin() {
+            const results = document.getElementById('results');
+            results.innerHTML += '<h3>Testing Login:</h3>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'demo@example.com',
+                        password: 'password123'
+                    })
+                });
+                
+                const data = await response.json();
+                results.innerHTML += `<p>Status: ${response.status}</p>`;
+                results.innerHTML += `<p>Response: ${JSON.stringify(data, null, 2)}</p>`;
+                
+            } catch (error) {
+                results.innerHTML += `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function testSummary() {
+            const results = document.getElementById('results');
+            results.innerHTML += '<h3>Testing Summary:</h3>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/summary`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                const data = await response.json();
+                results.innerHTML += `<p>Status: ${response.status}</p>`;
+                results.innerHTML += `<p>Response: ${JSON.stringify(data, null, 2)}</p>`;
+                
+            } catch (error) {
+                results.innerHTML += `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+        
+        async function testOptions() {
+            const results = document.getElementById('results');
+            results.innerHTML += '<h3>Testing OPTIONS:</h3>';
+            
+            try {
+                const response = await fetch(`${API_BASE}/login`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                results.innerHTML += `<p>Status: ${response.status}</p>`;
+                results.innerHTML += `<p>Headers: ${JSON.stringify(Object.fromEntries(response.headers), null, 2)}</p>`;
+                
+            } catch (error) {
+                results.innerHTML += `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+    </script>
+</body>
+</html>

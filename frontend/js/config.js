@@ -4,17 +4,17 @@ class APIConfig {
         // Default to local development - update this after deployment
         this.baseURL = this.getBaseURL();
         this.endpoints = {
-            classify: '/classify',
+            classify: '/ai-chat',  // Now handled by unified AI
             transactions: '/transactions', 
             summary: '/summary',
             reportMonthly: '/report/monthly',
             forecast: '/forecast',
             insights: '/insights',
-            // AI Chat endpoints
-            aiChat: '/ai/chat',
-            taxAdvisor: '/ai/tax-advisor',
-            financialAdvisor: '/ai/financial-advisor',
-            budgetRecommendations: '/ai/budget-recommendations',
+            // AI Chat endpoints - ALL now use the unified AI chat endpoint
+            aiChat: '/ai-chat',
+            taxAdvisor: '/ai-chat',
+            financialAdvisor: '/ai-chat',
+            budgetRecommendations: '/ai-chat',
             // Authentication endpoints
             login: '/login',
             register: '/register',

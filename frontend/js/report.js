@@ -3,8 +3,8 @@
 // Reusable API helper
 const API = {
 	endpoints: {
-		generateReport: 'https://<api-id>.execute-api.<region>.amazonaws.com/prod/generate-financial-report',
-		listReports: 'https://<api-id>.execute-api.<region>.amazonaws.com/prod/list-reports'
+		generateReport: 'https://xfnv4mgb64.execute-api.ap-southeast-1.amazonaws.com/prod/generate-financial-report',
+		listReports: 'https://xfnv4mgb64.execute-api.ap-southeast-1.amazonaws.com/prod/list-reports'
 	},
 	async apiCall(endpoint, options = {}) {
 		const url = this.endpoints[endpoint];

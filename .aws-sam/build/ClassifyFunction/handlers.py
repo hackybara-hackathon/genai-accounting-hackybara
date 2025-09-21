@@ -101,12 +101,12 @@ def get_s3_url(s3_key: str) -> str:
     return f"https://{BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
 
 def lambda_response(status_code: int, body: Dict, headers: Optional[Dict] = None) -> Dict:
-    """Standard Lambda response format"""
+    """Standard Lambda response format with CORS headers"""
     default_headers = {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
-        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+        'Access-Control-Allow-Methods': 'GET,POST,OPTIONS,PUT,DELETE'
     }
     
     if headers:
@@ -117,6 +117,29 @@ def lambda_response(status_code: int, body: Dict, headers: Optional[Dict] = None
         'headers': default_headers,
         'body': json.dumps(body, default=str)
     }
+
+def options_handler(event, context):
+    """Handle OPTIONS requests for CORS preflight"""
+    return {
+        'statusCode': 200,
+        'headers': {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Headers': 'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token',
+            'Access-Control-Allow-Methods': 'GET,POST,OPTIONS,PUT,DELETE',
+            'Access-Control-Max-Age': '86400'
+        },
+        'body': ''
+    }
+
+def cors_handler(func):
+    """Decorator to ensure CORS headers are always returned"""
+    def wrapper(event, context):
+        try:
+            return func(event, context)
+        except Exception as e:
+            logger.error(f"Handler {func.__name__} error: {str(e)}", exc_info=True)
+            return lambda_response(500, {'error': 'Internal server error'})
+    return wrapper
 
 def classify_handler(event, context):
     """POST /classify - Process receipt upload and classification"""
@@ -581,9 +604,9 @@ def budget_recommendations_handler(event, context):
         return lambda_response(500, {'error': 'Internal server error'})
 
 def ai_chat_handler(event, context):
-    """POST /ai/chat - General AI Assistant for accounting and finance"""
+    """POST /ai/chat - Unified AI Assistant for all accounting and finance tasks"""
     request_id = context.aws_request_id
-    logger.info(f"Request ID: {request_id}, AI Chat Query")
+    logger.info(f"Request ID: {request_id}, Unified AI Chat Query")
     
     try:
         # Parse request body
@@ -603,8 +626,8 @@ def ai_chat_handler(event, context):
         if len(conversation_context) > 5:
             conversation_context = conversation_context[-5:]
         
-        # Get AI response
-        response = bedrock_client.general_ai_chat(user_message, conversation_context)
+        # Use simple direct AI call instead of specialized methods
+        response = get_unified_ai_response(user_message, conversation_context)
         
         return lambda_response(200, {
             'message': user_message,
@@ -616,25 +639,34 @@ def ai_chat_handler(event, context):
         logger.error(f"AI chat handler error: {str(e)}", exc_info=True)
         return lambda_response(500, {'error': 'Internal server error'})
 
-def generate_forecast(historical_data: List[Dict]) -> List[Dict]:
+def get_unified_ai_response(user_message: str, conversation_context: List[Dict] = None) -> str:
     """
-    Simple forecasting using moving average with trend adjustment
+    Simple unified AI function that handles all accounting and finance tasks
     """
-    if len(historical_data) < 4:
-        return []
+    # Build conversation context
+    context_text = ""
+    if conversation_context:
+        context_text = "Previous conversation:\n"
+        for msg in conversation_context[-3:]:  # Last 3 messages
+            role = msg.get('role', 'user')
+            content = msg.get('content', msg.get('message', ''))
+            context_text += f"{role}: {content}\n"
+        context_text += "\n"
     
-    # Extract net cash flow values
-    net_values = [item['net'] for item in historical_data]
-    
-    # Calculate moving averages for trend
-    window_size = min(4, len(net_values))
-    moving_averages = []
-    
-    for i in range(len(net_values) - window_size + 1):
-        avg = statistics.mean(net_values[i:i + window_size])
-        moving_averages.append(avg)
-    
-    # Calculate trend (slope of recent moving averages)
+    # Create a comprehensive prompt for accounting assistant
+    prompt = f"""You are Hackybara AI, an expert accounting and finance assistant for small and medium businesses. You help with:
+
+• Financial reports and analysis
+• Expense categorization and tracking  
+• Cash flow predictions and trends
+• Tax preparation and planning
+• Budget recommendations and planning
+• General accounting questions
+• Business financial insights
+
+{context_text}User: {user_message}
+
+Please provide helpful, accurate, and actionable advice. Keep responses practical and business-focused. If you need more specific information to give better advice, ask clarifying questions.
     if len(moving_averages) >= 2:
         recent_avg = statistics.mean(moving_averages[-2:])
         older_avg = statistics.mean(moving_averages[:2])

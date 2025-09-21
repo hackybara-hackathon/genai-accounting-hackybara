@@ -7,5 +7,5 @@ s3_prefix = "genai-accounting-simple"
 region = "ap-southeast-1"
 confirm_changeset = true
 capabilities = "CAPABILITY_IAM"
-parameter_overrides = "WebsiteBucketName=\"genai-accounting-website\" ReceiptsBucketName=\"genai-accounting-receipts\" RegionForBedrock=\"ap-southeast-1\" ModelId=\"meta.llama3-2-3b-instruct-v1:0\" OrganizationId=\"94fbdf4e-0e94-404a-9abb-76a20e22c855\" DatabaseHost=\"hackybara-accounting.cteao02mo068.ap-southeast-1.rds.amazonaws.com\" DatabasePort=\"5432\" DatabaseName=\"postgres\" DatabaseUser=\"postgres\""
+parameter_overrides = "WebsiteBucketName=\"genai-accounting-website\" ReceiptsBucketName=\"genai-accounting-receipts\" RegionForBedrock=\"ap-southeast-1\" ModelId=\"amazon.nova-lite-v1:0\" OrganizationId=\"94fbdf4e-0e94-404a-9abb-76a20e22c855\" DatabaseHost=\"hackybara-accounting.cteao02mo068.ap-southeast-1.rds.amazonaws.com\" DatabasePort=\"5432\" DatabaseName=\"postgres\" DatabaseUser=\"postgres\" DatabasePassword=\"hackybara4321\""
 image_repositories = []

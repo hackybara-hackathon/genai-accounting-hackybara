@@ -1,0 +1,7 @@
+{
+  "body": "{\"message\":\"Hello\",\"context\":[]}",
+  "httpMethod": "POST",
+  "headers": {
+    "Content-Type": "application/json"
+  }
+}

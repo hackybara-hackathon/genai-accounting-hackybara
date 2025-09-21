@@ -447,7 +447,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       CodeUri: src/
-      Handler: handlers.ai_chat_handler
+      Handler: simple_ai_handler.ai_chat_handler
       Layers:
         - !Ref PsycopgLayer
       Policies:
@@ -555,6 +555,56 @@ Resources:
         - python3.12
     Metadata:
       BuildMethod: python3.12
+
+  # CORS Options Handler
+  OptionsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: handlers.options_handler
+      Timeout: 10
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+      Events:
+        OptionsApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /{proxy+}
+            Method: options
+
+  # Database Initialization Function
+  DbInitFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: db_init.init_database_handler
+      Timeout: 60
+      Layers:
+        - !Ref PsycopgLayer
+      Policies:
+        - Version: "2012-10-17"
+          Statement:
+            - Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource: "*"
+      Events:
+        DbInitApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGateway
+            Path: /init-db
+            Method: post
 
   # API Gateway
   ApiGateway:
